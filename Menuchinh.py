@@ -106,7 +106,7 @@ def generate_key(is_admin=False):
     if is_admin:
         return "BUASHANGKEYVIP"  # Key admin không có ngày hết hạn
     else:
-        return f"TH-{generate_random_key(10)}"  # Key user
+        return f"BUASHANG|DZAI-{generate_random_key(10)}"  # Key user
 # Hàm lưu key vào file (chỉ lưu 1 key)
 def save_key_to_file(key):
     """Lưu key vào file, ghi đè để chỉ lưu 1 key."""
@@ -164,7 +164,7 @@ def check_stored_key():
                 key_date = key_time.date()  # Ngày tạo key
                 if stored_key == "BUASHANGKEYVIP":
                     return stored_key, stored_key  # Key admin luôn hợp lệ
-                elif stored_key.startswith("TH-"):
+                elif stored_key.startswith("BUASHANG|DZAI-"):
                     if key_date == current_date:  # Key chỉ hợp lệ trong cùng ngày
                         return stored_key, stored_key
             except:
