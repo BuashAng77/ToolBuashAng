@@ -367,7 +367,7 @@ def main():
         elif choice == "6":
             try:
               kiem_tra_mang()
-              code = requests.get('https://raw.githubusercontent.com/hoangminhthieu2008/Thtool/refs/heads/main/spamsms').text
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/SMS.py').text
               exec(code, globals())
             except:
               sys.exit()
