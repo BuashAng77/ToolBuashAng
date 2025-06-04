@@ -309,7 +309,7 @@ def show_menu():
     table.add_column("Mô tả", style="red")
     table.add_column("Trạng Thái", style="cyan")
 
-    table.add_row("1", "GOLIKE TIKTOK", "ADB or Auto Click","Hoạt động")    
+    table.add_row("1", "GOLIKE TIKTOK", "ADB Tự Động | Ấn Tay","Hoạt động")    
     table.add_row("2", "GOLIKE TWITTER", "Cookie","Bảo Trì")        
     table.add_row("3", "TTC FACEBOOK", "Cookie","Bảo Trì")    
     table.add_row("4", "TDS FACEBOOK", "Cookie","Bảo Trì")
