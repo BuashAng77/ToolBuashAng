@@ -1,5 +1,5 @@
 import json
-import os, time
+import os,time
 import cloudscraper
 import requests
 import socket
@@ -18,7 +18,12 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.console import Console
 from rich.text import Text
-
+def kiem_tra_mang():
+    try:
+        socket.create_connection(("8.8.8.8", 53), timeout=10)
+    except OSError:
+        print("Mạng không ổn định hoặc bị mất kết nối. Vui lòng kiểm tra lại mạng.")
+kiem_tra_mang()
 scraper = cloudscraper.create_scraper()
 banner = f"""
 {Fore.YELLOW}╔══════════════════════════════════════════════════════╗
@@ -42,42 +47,43 @@ banner = f"""
 {Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}               {Fore.YELLOW}║
 {Fore.YELLOW}╚══════════════════════════════════════════════════════╝
 """    
-os.system('cls' if os.name == 'nt' else 'clear')
+os.system('cls' if os.name== 'nt' else 'clear')
 print(banner)
 print("\033[1;35m╔═════════════════════════════════╗")
 print("\033[1;35m║       \033[1;33m  ĐĂNG NHẬP GOLIKE        \033[1;35m║")
 print("\033[1;35m╚═════════════════════════════════╝") 
-# Nhập auth
+    # Nhập auth
 try:
-    Authorization = open("Authorization.txt", "x")
-    t = open("token.txt", "x")
+  Authorization = open("Authorization.txt","x")
+  t = open("token.txt","x")
 except:
-    pass
-Authorization = open("Authorization.txt", "r")
-t = open("token.txt", "r")
+  pass
+Authorization = open("Authorization.txt","r")
+t = open("token.txt","r")
 author = Authorization.read()
 token = t.read()
 if author == "":
-    author = input("\033[1;32mNHẬP AUTHORIZATION : \033[1;33m")
-    token = input("\033[1;32mNHẬP T (Token) : \033[1;33m")
-    Authorization = open("Authorization.txt", "w")
-    t = open("token.txt", "w")
+  author = input("\033[1;32mNHẬP AUTHORIZATION : \033[1;33m")
+  token = input("\033[1;32mNHẬP T (Token) : \033[1;33m")
+  Authorization = open("Authorization.txt","w")
+  t = open("token.txt","w")
+  Authorization.write(author)
+  t.write(token)
+else:
+  print(f"\033[1;32m       Nhấn Enter để vào TOOL")
+  print(f"\033[38;2;0;220;255m               HOẶC ")
+  select = input(f"\033[1;32mNhập AUTHORIZATION {Fore.RED}(tại đây) \033[1;32mđể vào acc khác: \033[1;33m")
+  kiem_tra_mang()
+  if select != "":
+    author = select
+    token = input("\033[1;32mNhập T (Token) : \033[1;33m")
+    Authorization = open("Authorization.txt","w")
+    t = open("token.txt","w")
     Authorization.write(author)
     t.write(token)
-else:
-    print(f"\033[1;32m       Nhấn Enter để vào TOOL")
-    print(f"\033[38;2;0;220;255m               HOẶC ")
-    select = input(f"\033[1;32mNhập AUTHORIZATION {Fore.RED}(tại đây) \033[1;32mđể vào acc khác: \033[1;33m")
-    if select != "":
-        author = select
-        token = input("\033[1;32mNhập T (Token) : \033[1;33m")
-        Authorization = open("Authorization.txt", "w")
-        t = open("token.txt", "w")
-        Authorization.write(author)
-        t.write(token)
 Authorization.close()
 t.close()
-os.system('cls' if os.name == 'nt' else 'clear')
+os.system('cls' if os.name== 'nt' else 'clear')
 print(banner)
 print("\033[1;35m╔═════════════════════════════════╗")
 print("\033[1;35m║   \033[1;33m   DANH SÁCH ACC TIKTOK       \033[1;35m║")
@@ -160,34 +166,34 @@ def baoloi(ads_id, object_id, account_id, loai):
 # Gọi chọn tài khoản một lần và xử lý lỗi nếu có
 chontktiktok = chonacc()
 def dsacc():
-    if chontktiktok.get("status") != 200:  
-        print("\033[1;31mAuthorization hoăc T sai   ")
-        quit()
-    for i in range(len(chontktiktok["data"])):
-        print(f'\033[1;36m[{i+1}]\033[1;93m {chontktiktok["data"][i]["nickname"]} \033[1;97m|\033[1;31m\033[1;32m Hoạt Động')
+  if chontktiktok.get("status") != 200:  
+    print("\033[1;31mAuthorization hoăc T sai   ")
+    quit()
+  for i in range(len(chontktiktok["data"])):
+    print(f'\033[1;36m[{i+1}]\033[1;93m {chontktiktok["data"][i]["nickname"]} \033[1;97m|\033[1;31m\033[1;32m Hoạt Động')
 dsacc() 
 print(f"{Fore.MAGENTA}═══════════════════════════════════")
 while True:
-    try:
-        luachon = int(input("\033[1;32mChọn tài khoản TIKTOK: \033[1;33m"))
-        while luachon > len((chontktiktok)["data"]):
-            luachon = int(input("\033[1;32mAcc Này Không Có Trong Danh Sách , Nhập Lại : \033[1;33m"))
-        account_id = chontktiktok["data"][luachon - 1]["id"]
-        break  
-    except:
-        print("\033[1;31mSai Định Dạng   ") 
+  try:
+    luachon = int(input("\033[1;32mChọn tài khoản TIKTOK: \033[1;33m"))
+    while luachon > len((chontktiktok)["data"]):
+      luachon = int(input("\033[1;32mAcc Này Không Có Trong Danh Sách , Nhập Lại : \033[1;33m"))
+    account_id = chontktiktok["data"][luachon - 1]["id"]
+    break  
+  except:
+    print("\033[1;31mSai Định Dạng   ") 
 while True:
-    try:
-        delay = int(input(f"\033[1;32mDelay: \033[1;33m"))
-        break
-    except:
-        print("\033[1;31mSai Định Dạng  ")
+  try:
+    delay = int(input(f"\033[1;32mDelay: \033[1;33m"))
+    break
+  except:
+    print("\033[1;31mSai Định Dạng  ")
 while True:
-    try: 
-        doiacc = int(input(f"\033[1;32mThất bại bao nhiêu lần thì đổi acc: \033[1;33m"))
-        break
-    except:
-        print("\033[1;31mNhập Vào 1 Số  ")  
+  try: 
+    doiacc = int(input(f"\033[1;32mThất bại bao nhiêu lần thì đổi acc: \033[1;33m"))
+    break
+  except:
+    print("\033[1;31mNhập Vào 1 Số  ")  
 print("\033[1;35m╔═════════════════════════════════╗")
 print("\033[1;35m║     \033[1;33m  CHỌN LOẠI NHIỆM VỤ        \033[1;35m║")
 print("\033[1;35m╚═════════════════════════════════╝")
@@ -212,64 +218,64 @@ print(f"\033[1;36m[2] Không")
 adbyn = input(f"\033[1;32mNhập lựa chọn: \033[1;33m")
 if adbyn == "1":
     def setup_adb():
-        config_file = "adb_config.txt"
-        like_coords_file = "toa_do_tim.txt"
-        follow_coords_file = "toa_do_follow.txt"
-        # Nhập IP và port ADB
-        print(f"{Fore.MAGENTA}═══════════════════════════════════")
-        print("\033[1;33mBạn có thể xem video hướng dẫn kết nối ADB")
-        print("\033[1;33mLink video: \033[38;2;0;220;255mhttps://youtu.be/vcWNzu2XRSE?si=_jFVm9nhSkNGBK_-\033[0m")
-        ip = input("\033[1;32mNhập IP của thiết bị ví dụ (192.168.1.2): \033[1;33m")
-        adb_port = input("\033[1;32mNhập port của thiết bị ví dụ (39327): \033[1;33m")
-        # Kiểm tra và đọc tọa độ từ file nếu tồn tại
-        x_like, y_like, x_follow, y_follow = None, None, None, None    
-        if os.path.exists(like_coords_file):
-            with open(like_coords_file, "r") as f:
-                coords = f.read().split("|")
-                if len(coords) == 2:
-                    x_like, y_like = coords
-                    print(f"\033[1;32mĐã tìm thấy tọa độ nút tim: X={x_like}, Y={y_like}")    
-        if os.path.exists(follow_coords_file):
-            with open(follow_coords_file, "r") as f:
-                coords = f.read().split("|")
-                if len(coords) == 2:
-                    x_follow, y_follow = coords
-                    print(f"\033[1;32mĐã tìm thấy tọa độ nút follow: X={x_follow}, Y={y_follow}")
-        if not os.path.exists(config_file):
-            print("\033[1;36mLần đầu chạy, nhập mã ghép nối (6 SỐ) và port ghép nối.\033[0m")
-            pair_code = input("\033[1;32mNhập mã ghép nối 6 số ví dụ (322763): \033[1;33m")
-            pair_port = input("\033[1;32mNhập port ghép nối ví dụ (44832): \033[1;33m")
-            with open(config_file, "w") as f:
-                f.write(f"{pair_code}|{pair_port}")
-        else:
-            with open(config_file, "r") as f:
-                pair_code, pair_port = [s.strip() for s in f.read().split("|")]  
-        print("\n\033[1;36m  Đang ghép nối với thiết bị\033[0m")
-        os.system(f"adb pair {ip}:{pair_port} {pair_code}")
-        time.sleep(2)  
-        print("\033[1;36m  Đang kết nối ADB\033[0m")
-        os.system(f"adb connect {ip}:{adb_port}")
-        time.sleep(2)  
-        devices = os.popen("adb devices").read()
-        if ip not in devices:
-            print(f"{Fore.RED} Kết nối thất bại{Fore.WHITE}")
-            exit()    
-        # Yêu cầu nhập tọa độ nếu chưa có
-        print("\033[1;35m╔═════════════════════════════════╗")
-        print("\033[1;35m║     \033[1;33m  NHẬP TỌA ĐỘ NÚT         \033[1;35m║")
-        print("\033[1;35m╚═════════════════════════════════╝")    
-        if loai_nhiem_vu in [1, 3] and (x_follow is None or y_follow is None):
-            x_follow = input("\033[1;32mNhập tọa độ X của nút follow: \033[1;33m")
-            y_follow = input("\033[1;32mNhập tọa độ Y của nút follow: \033[1;33m")
-            with open(follow_coords_file, "w") as f:
-                f.write(f"{x_follow}|{y_follow}")    
-        if loai_nhiem_vu in [2, 3] and (x_like is None or y_like is None):
-            x_like = input("\033[1;32mNhập tọa độ X của nút tim: \033[1;33m")
-            y_like = input("\033[1;32mNhập tọa độ Y của nút tim: \033[1;33m")
-            with open(like_coords_file, "w") as f:
-                f.write(f"{x_like}|{y_like}")
-        return x_like, y_like, x_follow, y_follow
-    # Khi gọi hàm setup_adb()
+      config_file = "adb_config.txt"
+      like_coords_file = "toa_do_tim.txt"
+      follow_coords_file = "toa_do_follow.txt"
+    # Nhập IP và port ADB
+      print(f"{Fore.MAGENTA}═══════════════════════════════════")
+      print("\033[1;33mBạn có thể xem video hướng dẫn kết nối ADB")
+      print("\033[1;33mLink video: \033[38;2;0;220;255mhttps://youtu.be/vcWNzu2XRSE?si=_jFVm9nhSkNGBK_-\033[0m")
+      ip = input("\033[1;32mNhập IP của thiết bị ví dụ (192.168.1.2): \033[1;33m")
+      adb_port = input("\033[1;32mNhập port của thiết bị ví dụ (39327): \033[1;33m")
+      # Kiểm tra và đọc tọa độ từ file nếu tồn tại
+      x_like, y_like, x_follow, y_follow = None, None, None, None    
+      if os.path.exists(like_coords_file):
+           with open(like_coords_file, "r") as f:
+              coords = f.read().split("|")
+              if len(coords) == 2:
+                   x_like, y_like = coords
+                   print(f"\033[1;32mĐã tìm thấy tọa độ nút tim: X={x_like}, Y={y_like}")    
+      if os.path.exists(follow_coords_file):
+          with open(follow_coords_file, "r") as f:
+               coords = f.read().split("|")
+               if len(coords) == 2:
+                   x_follow, y_follow = coords
+                   print(f"\033[1;32mĐã tìm thấy tọa độ nút follow: X={x_follow}, Y={y_follow}")
+      if not os.path.exists(config_file):
+           print("\033[1;36mLần đầu chạy, nhập mã ghép nối (6 SỐ) và port ghép nối.\033[0m")
+           pair_code = input("\033[1;32mNhập mã ghép nối 6 số ví dụ (322763): \033[1;33m")
+           pair_port = input("\033[1;32mNhập port ghép nối ví dụ (44832): \033[1;33m")
+           with open(config_file, "w") as f:
+               f.write(f"{pair_code}|{pair_port}")
+      else:
+          with open(config_file, "r") as f:
+               pair_code, pair_port = [s.strip() for s in f.read().split("|")]  
+      print("\n\033[1;36m  Đang ghép nối với thiết bị\033[0m")
+      os.system(f"adb pair {ip}:{pair_port} {pair_code}")
+      time.sleep(2)  
+      print("\033[1;36m  Đang kết nối ADB\033[0m")
+      os.system(f"adb connect {ip}:{adb_port}")
+      time.sleep(2)  
+      devices = os.popen("adb devices").read()
+      if ip not in devices:
+        print(f"{Fore.RED} Kết nối thất bại{Fore.WHITE}")
+        exit()    
+       # Yêu cầu nhập tọa độ nếu chưa có
+      print("\033[1;35m╔═════════════════════════════════╗")
+      print("\033[1;35m║     \033[1;33m  NHẬP TỌA ĐỘ NÚT         \033[1;35m║")
+      print("\033[1;35m╚═════════════════════════════════╝")    
+      if loai_nhiem_vu in [1, 3] and (x_follow is None or y_follow is None):
+           x_follow = input("\033[1;32mNhập tọa độ X của nút follow: \033[1;33m")
+           y_follow = input("\033[1;32mNhập tọa độ Y của nút follow: \033[1;33m")
+           with open(follow_coords_file, "w") as f:
+               f.write(f"{x_follow}|{y_follow}")    
+      if loai_nhiem_vu in [2, 3] and (x_like is None or y_like is None):
+           x_like = input("\033[1;32mNhập tọa độ X của nút tim: \033[1;33m")
+           y_like = input("\033[1;32mNhập tọa độ Y của nút tim: \033[1;33m")
+           with open(like_coords_file, "w") as f:
+              f.write(f"{x_like}|{y_like}")
+      return x_like, y_like, x_follow, y_follow
+# Khi gọi hàm setup_adb()
     x_like, y_like, x_follow, y_follow = setup_adb()
 elif adbyn == "2":
     pass
@@ -279,7 +285,7 @@ tong = 0
 checkdoiacc = 0
 dsaccloi = []
 accloi = ""
-os.system('cls' if os.name == 'nt' else 'clear')
+os.system('cls' if os.name== 'nt' else 'clear')
 print(banner)
 print("\033[1;37m════════════════════════════════════════════════════════════")
 print("\033[1;31m| \033[1;36mSTT \033[1;37m| \033[1;33mThời gian \033[1;37m| \033[1;32mStatus \033[1;37m| \033[1;31mType job \033[1;37m| \033[1;32mID Acc \033[1;37m| \033[1;32mXu \033[1;37m| \033[1;33mTổng       ")
@@ -299,9 +305,9 @@ while True:
                     luachon = int(input("\033[1;31mAcc Này Không Có Trong Danh Sách, Hãy Nhập Lại : \033[1;33m"))
                 account_id = chontktiktok["data"][luachon - 1]["id"]
                 checkdoiacc = 0
-                os.system('cls' if os.name == 'nt' else 'clear')
+                os.system('cls' if os.name== 'nt' else 'clear')
                 for h in banner:
-                    print(h, end="")
+                    print(h,end = "")
                 break  
             except:
                 print("\033[1;31mSai Định Dạng !!!")
@@ -337,7 +343,7 @@ while True:
         if adbyn == "1":
             os.system(f'adb shell am start -a android.intent.action.VIEW -d "{link}" > /dev/null 2>&1')
         else:
-            # os.system(f"termux-open-url {link}")
+            #os.system(f"termux-open-url {link}")
             subprocess.run(["termux-open-url", link])        
         for remaining in range(3, 0, -1):
             time.sleep(1)
@@ -356,7 +362,7 @@ while True:
         print(f"\r{color}BUASH ANG | ĐẸP TRAI VCL|  {remaining_time}s           ", end="")
         time.sleep(1)    
     print("\r                          \r", end="") 
-    print("\033[1;35mĐang Nhận Tiền    ", end="\r")
+    print("\033[1;35mĐang Nhận Tiền    ",end = "\r")
     # Hoàn thành job
     max_attempts = 2
     attempts = 0
@@ -387,12 +393,12 @@ while True:
         if second < 10:
             s = "0" + str(second)                                      
         chuoi = (f"\033[1;31m| \033[1;36m{dem}"
-                 f" \033[1;37m| \033[1;33m{h}:{m}:{s}"
-                 f" \033[1;37m| \033[1;32msuccess"
-                 f" \033[1;37m| \033[1;31m{job_type}"
-                 f" \033[1;37m| \033[1;32mẨn ID"
-                 f" \033[1;37m| \033[1;32m+{tien}"
-                 f" \033[1;37m| \033[1;33m{tong}")
+                f" \033[1;37m| \033[1;33m{h}:{m}:{s}"
+                f" \033[1;37m| \033[1;32msuccess"
+                f" \033[1;37m| \033[1;31m{job_type}"
+                f" \033[1;37m| \033[1;32mẨn ID"
+                f" \033[1;37m| \033[1;32m+{tien}"
+                f" \033[1;37m| \033[1;33m{tong}")
         print("                                                    ", end="\r")
         print(chuoi)
         time.sleep(0.7)
