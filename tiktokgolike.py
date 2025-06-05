@@ -37,14 +37,47 @@ def kiem_tra_mang():
         print("\033[1;31mMạng không ổn định hoặc bị mất kết nối. Vui lòng kiểm tra lại mạng ❌")
         quit()
 
-kiem_tra_mang()
-scraper = cloudscraper.create_scraper()
+def initialize_files():
+    """Tạo file Authorization.txt và token.txt nếu chưa tồn tại."""
+    files = ["Authorization.txt", "token.txt"]
+    for file_name in files:
+        if not os.path.exists(file_name):
+            try:
+                with open(file_name, "w") as f:
+                    f.write("")  # Tạo file rỗng
+                print(f"\033[1;32mĐã tạo file {file_name} thành công! ✅")
+            except Exception as e:
+                print(f"\033[1;31mLỗi khi tạo file {file_name}: {e} ❌")
+                quit()
+
+def load_credentials():
+    """Đọc Authorization và Token từ file, trả về giá trị hoặc chuỗi rỗng nếu file rỗng."""
+    initialize_files()  # Đảm bảo file tồn tại
+    try:
+        with open("Authorization.txt", "r") as auth_file, open("token.txt", "r") as token_file:
+            author = auth_file.read().strip()
+            token = token_file.read().strip()
+        return author, token
+    except Exception as e:
+        print(f"\033[1;31mLỗi khi đọc file: {e} ❌")
+        return "", ""
+
+def save_credentials(author, token):
+    """Lưu Authorization và Token vào file."""
+    try:
+        with open("Authorization.txt", "w") as auth_file, open("token.txt", "w") as token_file:
+            auth_file.write(author)
+            token_file.write(token)
+        print("\033[1;32mĐã lưu Authorization và Token vào file! ✅")
+    except Exception as e:
+        print(f"\033[1;31mLỗi khi lưu file: {e} ❌")
+        quit()
 
 # Updated banner with current date/time
 banner = f"""
 {Fore.YELLOW}╔══════════════════════════════════════════════════════╗
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██████╗░██╗░░░██╗░█████╗░░██████╗██╗░░██╗           {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}██████╗░██╗░░░██╗░█████╗░░██████╗██╗░░██║           {Fore.YELLOW}║
 {Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██╗██╔════╝██║░░██║           {Fore.YELLOW}║
 {Fore.YELLOW}║  {Fore.WHITE}██████╦╝██║░░░██║███████║╚█████╗░███████║           {Fore.YELLOW}║
 {Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██║░╚═══██╗██╔══██║           {Fore.YELLOW}║
@@ -60,7 +93,7 @@ banner = f"""
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛          {Fore.YELLOW}║
+{Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛            {Fore.YELLOW}║
 {Fore.YELLOW}╚══════════════════════════════════════════════════════╝
 """
 
@@ -70,43 +103,36 @@ print("\033[1;35m╔════════════════════
 print("\033[1;35m║       \033[1;33m  ĐĂNG NHẬP GOLIKE        \033[1;35m║")
 print("\033[1;35m╚═════════════════════════════════╝")
 
-# Nhập auth
-try:
-    with open("Authorization.txt", "x"):
-        pass
-    with open("token.txt", "x"):
-        pass
-except:
-    pass
+# Kiểm tra mạng
+kiem_tra_mang()
+scraper = cloudscraper.create_scraper()
 
-with open("Authorization.txt", "r") as Authorization, open("token.txt", "r") as t:
-    author = Authorization.read()
-    token = t.read()
+# Đọc Authorization và Token từ file
+author, token = load_credentials()
 
-if not author:
-    author = input("\033[1;32mNHẬP AUTHORIZATION: \033[1;33m")
-    token = input("\033[1;32mNHẬP T (Token): \033[1;33m")
-    with open("Authorization.txt", "w") as Authorization, open("token.txt", "w") as t:
-        Authorization.write(author)
-        t.write(token)
+if not author or not token:
+    # Nếu file rỗng hoặc chưa có dữ liệu, yêu cầu người dùng nhập
+    author = input("\033[1;32mNHẬP AUTHORIZATION: \033[1;33m").strip()
+    token = input("\033[1;32mNHẬP T (Token): \033[1;33m").strip()
+    if not author or not token:
+        print("\033[1;31mAuthorization hoặc Token không được để trống! ❌")
+        quit()
+    save_credentials(author, token)
 else:
-    print(f"\033[1;32m       Nhấn Enter để vào TOOL")
+    # Nếu đã có dữ liệu, cho phép người dùng giữ nguyên hoặc nhập mới
+    print(f"\033[1;32m       Nhấn Enter để vào TOOL với Authorization và Token hiện tại")
     print(f"\033[38;2;0;220;255m               HOẶC ")
-    select = input(f"\033[1;32mNhập AUTHORIZATION {Fore.RED}(tại đây) \033[1;32mđể vào acc khác: \033[1;33m")
+    select = input(f"\033[1;32mNhập AUTHORIZATION {Fore.RED}(tại đây) \033[1;32mđể vào acc khác: \033[1;33m").strip()
     kiem_tra_mang()
     if select:
         author = select
-        token = input("\033[1;32mNhập T (Token): \033[1;33m")
-        with open("Authorization.txt", "w") as Authorization, open("token.txt", "w") as t:
-            Authorization.write(author)
-            t.write(token)
+        token = input("\033[1;32mNhập T (Token): \033[1;33m").strip()
+        if not author or not token:
+            print("\033[1;31mAuthorization hoặc Token không được để trống! ❌")
+            quit()
+        save_credentials(author, token)
 
-os.system('cls' if os.name == 'nt' else 'clear')
-print(banner)
-print("\033[1;35m╔═════════════════════════════════╗")
-print("\033[1;35m║   \033[1;33m   DANH SÁCH ACC TIKTOK       \033[1;35m║")
-print("\033[1;35m╚═════════════════════════════════╝")
-
+# Cập nhật headers
 headers = {
     'Accept': 'application/json, text/plain, */*',
     'Content-Type': 'application/json;charset=utf-8',
@@ -191,6 +217,12 @@ def dsacc():
     for i in range(len(chontktiktok["data"])):
         icon = random.choice(account_icons)
         print(f'\033[1;36m[{i+1}] \033[1;93m{chontktiktok["data"][i]["nickname"]} \033[1;97m| \033[1;32mHoạt Động {icon}')
+
+os.system('cls' if os.name == 'nt' else 'clear')
+print(banner)
+print("\033[1;35m╔═════════════════════════════════╗")
+print("\033[1;35m║   \033[1;33m   DANH SÁCH ACC TIKTOK       \033[1;35m║")
+print("\033[1;35m╚═════════════════════════════════╝")
 
 chontktiktok = chonacc()
 dsacc()
@@ -324,6 +356,7 @@ while True:
         dsacc()
         while True:
             try:
+                print("\033[1;36mĐang chờ chọn tài khoản mới...")  # Sửa lỗi print Glenn
                 print(f"{Fore.WHITE}════════════════════════════════════════════════════")
                 luachon = int(input("\033[1;32mChọn tài khoản mới: \033[1;33m"))
                 while luachon > len(chontktiktok["data"]):
