@@ -373,11 +373,11 @@ def main():
               sys.exit()
             except:
               sys.exit()
-         elif choice == "7":
-             try:
-               kiem_tra_mang()
-               code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/dos.py').text
-               exec(code, globals())
+        elif choice == "7":
+            try:
+              kiem_tra_mang()
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/dos.py').text
+              exec(code, globals())
             except:
               sys.exit()
         
