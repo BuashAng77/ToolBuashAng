@@ -316,6 +316,9 @@ def show_menu():
     table.add_row("5", "TDS TIKTOK", "Auto click","Hoạt Động")
     table.add_row("6", "SPAM ", "Nhây Số Điện Thoại","Hoạt Động")
     table.add_row("7", "DOS WEBSITE ", "Đánh Sập Wed","Hoạt Động")
+    table.add_row("8", "Lấy ID ", " Lấy ID Spam Messages","Hoạt Động")
+    table.add_row("9", "Spam Messages ", "Spam Liên Tục Tin nhắn Được chỉ","Hoạt Động")
+    table.add_row("10", "Follow Tiktok", "Buff Follow Ảo ","Hoạt Động")
     console.print(table)
 def main():
     while True:
@@ -377,6 +380,27 @@ def main():
             try:
               kiem_tra_mang()
               code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/dos.py').text
+              exec(code, globals())
+            except:
+              sys.exit()
+        elif choice == "8":
+            try:
+              kiem_tra_mang()
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/layid.py').text
+              exec(code, globals())
+            except:
+              sys.exit()
+        elif choice == "9":
+            try:
+              kiem_tra_mang()
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/spamtinnhan.py').text
+              exec(code, globals())
+            except:
+              sys.exit()
+        elif choice == "10":
+            try:
+              kiem_tra_mang()
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/followtiktok.py').text
               exec(code, globals())
             except:
               sys.exit()
