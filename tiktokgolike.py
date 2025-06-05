@@ -60,7 +60,7 @@ banner = f"""
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛            {Fore.YELLOW}║
+{Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛           {Fore.YELLOW}║
 {Fore.YELLOW}╚══════════════════════════════════════════════════════╝
 """
 
