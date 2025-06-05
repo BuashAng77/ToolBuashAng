@@ -338,7 +338,7 @@ def main():
         elif choice == "2":
             try:
               kiem_tra_mang()
-              code = requests.get('https://raw.githubusercontent.com/hoangminhthieu2008/Thtool/refs/heads/main/twitter').text
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/xgolike.py').text
               exec(code, globals())
             except:
               sys.exit()
