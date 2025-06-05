@@ -371,7 +371,7 @@ def main():
               code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/SMS.py').text
               exec(code, globals())
               sys.exit()
-        except:
+            except:
               sys.exit()
          elif choice == "7":
              try:
