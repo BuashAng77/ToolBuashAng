@@ -20,7 +20,7 @@ from rich.console import Console
 from rich.text import Text
 def kiem_tra_mang():
     try:
-        socket.create_connection(("8.8.8.8", 53), timeout=10)
+        socket.create_connection(("8.8.8.8", 63), timeout=30)
     except OSError:
         print("Mạng không ổn định hoặc bị mất kết nối. Vui lòng kiểm tra lại mạng.")
 kiem_tra_mang()
