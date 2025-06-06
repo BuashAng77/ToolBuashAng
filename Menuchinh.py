@@ -6,7 +6,8 @@ required_packages = {
     "colorama": "colorama",
     "rich": "rich",
     "bs4": "beautifulsoup4",
-    "cloudscraper": "cloudscraper"
+    "cloudscraper": "cloudscraper",
+    "keyboard": "keyboard"
 }
 missing = False
 for module_name, pip_name in required_packages.items():
