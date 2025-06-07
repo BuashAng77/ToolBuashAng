@@ -375,7 +375,7 @@ while True:
             except:
                 print("\033[1;31mSai Định Dạng ❌")
     
-    print(f'\033[1;35m🐥Buash Ang Đang Tìm Nhiệm Vụ Cho Bạn🥲 {dynamic_icons[icon_index % len(dynamic_icons)]}', end="\r")
+    print(f'\033[1;35m🐥Đang Tìm Nhiệm Vụ Cho Bạn🥲 {dynamic_icons[icon_index % len(dynamic_icons)]}', end="\r")
     icon_index = (icon_index + 1) % len(dynamic_icons)
     time.sleep(0.5)
     
