@@ -5,11 +5,16 @@ import cloudscraper
 import requests
 from datetime import datetime
 from colorama import Fore, init
+from rich.table import Table
+from rich.console import Console
 
-init(autoreset=True)  # Khởi tạo colorama để hỗ trợ màu sắc trên terminal
+# Khởi tạo colorama và rich
+init(autoreset=True)
+console = Console()
 
 cookie_file = "twitter_cookie.txt"
 
+# Banner
 banner = f"""
 {Fore.YELLOW}╔══════════════════════════════════════════════════════╗
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
@@ -27,7 +32,6 @@ banner = f"""
 {Fore.YELLOW}║  {Fore.WHITE}          ██║░░██║██║░╚███║╚██████╔╝                {Fore.YELLOW}║
 {Fore.YELLOW}║  {Fore.WHITE}          ╚═╝░░╚═╝╚═╝░░╚══╝░╚═════╝░                {Fore.YELLOW}║
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛            {Fore.YELLOW}║
 {Fore.YELLOW}╚══════════════════════════════════════════════════════╝
 """
@@ -37,6 +41,7 @@ print("\033[1;35m╔════════════════════
 print("\033[1;35m║     \033[1;33m  ĐĂNG NHẬP GOLIKE        \033[1;35m║")
 print("\033[1;35m╚═════════════════════════════════╝")
 
+# Xử lý Authorization và Token
 try:
     Authorization = open("Authorization.txt", "x")
     t = open("token.txt", "x")
@@ -210,9 +215,7 @@ def baoloi(ads_id, object_id, account_id, loai):
     except Exception as e:
         print()
 
-# Gọi chọn tài khoản một lần và xử lý lỗi nếu có
-chontkTwitter = chonacc()
-
+# Hàm hiển thị danh sách tài khoản bằng rich
 def dsacc():
     if chontkTwitter.get("status") != 200:
         print("\033[1;31mAuthorization hoặc Token sai ")
@@ -223,10 +226,20 @@ def dsacc():
         print("\033[1;33mKhông có tài khoản Twitter nào được tìm thấy.")
         return
 
-    for i, acc in enumerate(data):
-        username = acc.get("username", acc.get("screen_name", acc.get("id")))  # Lấy username
-        print(f'\033[1;36m[{i+1}]\033[1;93m {username} \033[1;97m|\033[1;32m Hoạt Động')
+    # Tạo bảng với rich
+    table = Table(title="Danh Sách Tài Khoản Twitter", show_header=True, header_style="bold cyan")
+    table.add_column("STT", style="magenta", justify="center")
+    table.add_column("Screen Name", style="yellow")
+    table.add_column("Trạng Thái", style="green")
 
+    for i, acc in enumerate(data):
+        screen_name = acc.get("screen_name", acc.get("username", "Unknown"))
+        table.add_row(str(i+1), screen_name, "Hoạt Động")
+
+    console.print(table)
+
+# Gọi hàm chọn tài khoản
+chontkTwitter = chonacc()
 dsacc()
 print(f"{Fore.MAGENTA}═══════════════════════════════════")
 while True:
@@ -291,6 +304,7 @@ while True:
             print("\033[1;31mVui lòng chọn số từ 1 đến 3!")
     except:
         print("\033[1;31mSai định dạng! Vui lòng nhập số.")  
+
 # Thêm phần chọn loại nhiệm vụ sau khi chọn tài khoản và trước khi bắt đầu làm nhiệm vụ
 ads_id_da_lam = set()
 object_id_da_lam = set()
@@ -427,11 +441,11 @@ while True:
             s = "0" + str(second)
                                       
         chuoi = (f"\033[1;35m[\033[1;31m{dem}\033[1;35m]"
-                 f" \033[1;35m[\033[1;32mDone\033[1;35m]"
-                 f" \033[1;35m[\033[38;2;0;180;255m{job_type}\033[1;35m]"
-                 f" \033[1;35m[\033[1;33m+{tien}\033[1;35m]"
-                 f" \033[1;35m[\033[1;33mTổng: {tong}\033[1;35m]"
-                 f" \033[1;35m[\033[1;37mTime: {h}:{m}:{s}\033[1;35m]")
+                 f" \033[1;35m[\033[1;32mDone\033[1;35m] 🔥"
+                 f" \033[1;35m[\033[38;2;0;180;255m{job_type}\033[1;35m] ✅"
+                 f" \033[1;35m[\033[1;33m+{tien}\033[1;35m] 💸"
+                 f" \033[1;35m[\033[1;33mTổng: {tong}\033[1;35m] 💰"
+                 f" \033[1;35m[\033[1;37mTime: {h}:{m}:{s}\033[1;35m] ⌛")
 
         print("                                                    ", end="\r")
         print(chuoi)

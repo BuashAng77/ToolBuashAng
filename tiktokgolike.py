@@ -13,6 +13,7 @@ from pystyle import Colors, Colorate
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
+from rich.table import Table
 
 init()  # Initialize colorama
 
@@ -211,15 +212,39 @@ def baoloi(ads_id, object_id, account_id, loai):
         pass
 
 def dsacc():
+    console = Console()
     if chontktiktok.get("status") != 200:
-        print("\033[1;31mAuthorization hoặc T sai ❌")
+        console.print("[bold red]Authorization hoặc T sai ❌[/]")
         quit()
+    
+    # Kiểm tra và chuẩn hóa dữ liệu
+    if not chontktiktok["data"] or not isinstance(chontktiktok["data"], list):
+        console.print("[bold red]Dữ liệu tài khoản không hợp lệ hoặc trống! ❌[/]")
+        quit()
+    
+    # Create a Rich table
+    table = Table(title="Danh Sách Tài Khoản TikTok", title_style="white", show_lines=True)
+    table.add_column("STT", justify="center", style="cyan", no_wrap=True)
+    table.add_column("Tài Khoản username", justify="left", style="yellow")
+    table.add_column("Account ID", justify="left", style="green")
+    table.add_column("Trạng Thái Tài Khoản", justify="center", style="bold magenta ")
+    
+    # Populate the table with account data
     for i in range(len(chontktiktok["data"])):
-        icon = random.choice(account_icons)
-        unique_username = chontktiktok["data"][i]["unique_username"]
-        account_id = chontktiktok["data"][i]["id"]
+        unique_username = str(chontktiktok["data"][i].get("unique_username", "N/A"))
+        account_id = str(chontktiktok["data"][i].get("id", "N/A"))
         status = chontktiktok["data"][i].get("status", "N/A")
-        print(f'\033[1;36m[{i+1}] \033[1;93m{unique_username} \033[1;97m| \033[1;32mID: {account_id} \033[1;97m| \033[1;32mHoạt Động {icon}')
+        # Chuyển đổi trạng thái số 1 thành "Hoạt Động" và thêm icon
+        status_display = f"Hoạt Động {random.choice(account_icons)}" if str(status) == "1" else str(status)
+        table.add_row(
+            str(i + 1),
+            unique_username,
+            account_id,
+            status_display
+        )
+    
+    # Print the table
+    console.print(table)
 
 os.system('cls' if os.name == 'nt' else 'clear')
 print(banner)
@@ -375,7 +400,7 @@ while True:
             except:
                 print("\033[1;31mSai Định Dạng ❌")
     
-    print(f'\033[1;35m🐥Đang Tìm Nhiệm Vụ Cho Bạn🥲 {dynamic_icons[icon_index % len(dynamic_icons)]}', end="\r")
+    print(f'\033[1;35m🐥BUASH ANG Đang Tìm Nhiệm Vụ Cho Bạn💸', end="\r")
     icon_index = (icon_index + 1) % len(dynamic_icons)
     time.sleep(0.5)
     
@@ -427,7 +452,7 @@ while True:
     for remaining_time in range(delay, -1, -1):
         color = colors[remaining_time % len(colors)]
         animal = random.choice(animal_emojis)
-        print(f"\r{color}BUASH ANG | ĐẸP TRAI VCL| {remaining_time}s {animal}", end="")
+        print(f"\r{color}🐥BUASH ANG | ĐẸP TRAI VCL AHIHI| {remaining_time}s {animal}", end="")
         time.sleep(1)
     print("\r                          \r", end="")
     
@@ -465,12 +490,12 @@ while True:
         if second < 10:
             s = "0" + str(second)
         chuoi = (f"\033[1;31m| \033[1;36m{dem}"
-                 f" \033[1;37m| \033[1;33m{h}:{m}:{s}"
+                 f" \033[1;37m| \033[1;33m{h}:{m}:{s} ⌛"
                  f" \033[1;37m| \033[1;32msuccess ✅"
-                 f" \033[1;37m| \033[1;31m{job_type}🔥"
-                 f" \033[1;37m| \033[1;32mẨn ID🐥"
-                 f" \033[1;37m| \033[1;32m+{tien}💸"
-                 f" \033[1;37m| \033[1;33m{tong}💰")
+                 f" \033[1;37m| \033[1;31m{job_type} 🔥"
+                 f" \033[1;37m| \033[1;32mẚn ID 🐥"
+                 f" \033[1;37m| \033[1;32m+{tien} 💸"
+                 f" \033[1;37m| \033[1;33m{tong} 💰")
         print("                                                    ", end="\r")
         print(chuoi)
         time.sleep(0.7)
@@ -487,4 +512,3 @@ while True:
             print(f"\033[1;31mNhận tiền thất bại ({doiacc}|{checkdoiacc}) ❌", end="\r")
             time.sleep(1)
             checkdoiacc += 1
-            
