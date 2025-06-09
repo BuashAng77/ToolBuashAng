@@ -358,10 +358,10 @@ def clear():
     os.system("clear" if os.name != "nt" else "cls")
 def show_menu():
     table = Table(title="   TOOL BUASH ANG DZAI", box=box.SQUARE_DOUBLE_HEAD, style="white")
-    table.add_column("STT", style="cyan", justify="center")
-    table.add_column("Tên Tool", style="magenta", justify="left")
-    table.add_column("Mô tả", style="Yellow")
-    table.add_column("Trạng Thái", style="cyan")
+    table.add_column("STT", style="blink bright_Yellow", justify="center")
+    table.add_column("Tên Tool", style="blink bright_green", justify="left")
+    table.add_column("Mô tả", style="bold #FF4500")
+    table.add_column("Trạng Thái", style="blink cyan")
 
     table.add_row("1", "GOLIKE TIKTOK", "ADB Tự Động | Ấn Tay","Hoạt động")    
     table.add_row("2", "GOLIKE TWITTER", "Cookie","Hoạt Động")        
