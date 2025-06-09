@@ -360,16 +360,18 @@ def show_menu():
     table = Table(title="   TOOL BUASH ANG DZAI", box=box.SQUARE_DOUBLE_HEAD, style="white")
     table.add_column("STT", style="cyan", justify="center")
     table.add_column("Tên Tool", style="magenta", justify="left")
-    table.add_column("Mô tả", style="red")
+    table.add_column("Mô tả", style="Yellow")
     table.add_column("Trạng Thái", style="cyan")
 
     table.add_row("1", "GOLIKE TIKTOK", "ADB Tự Động | Ấn Tay","Hoạt động")    
     table.add_row("2", "GOLIKE TWITTER", "Cookie","Hoạt Động")        
-    table.add_row("3", "TTC FACEBOOK", "Cookie","Hoạt Động")    
-    table.add_row("4", "TDS FACEBOOK", "Cookie","Hoạt Động")
-    table.add_row("5", "TDS TIKTOK", "Auto click","Hoạt Động")
-    table.add_row("6", "SPAM ", "Nhây Số Điện Thoại","Hoạt Động")
+    table.add_row("3", "TTC FACEBOOK", "Cookie","Đang Update")    
+    table.add_row("4", "TDS FACEBOOK", "Cookie","Đang Update")
+    table.add_row("5", "TDS TIKTOK", "Auto click","Đang Update")
     table.add_row("7", "DOS WEBSITE ", "Đánh Sập Wed","Hoạt Động")
+    table.add_row("6", "SPAM ", "Nhây Số Điện Thoại","Hoạt Động")
+    table.add_row("8", "Tạo Page Facebook ", "Pro 5 + Avatar + Đa Luồng","Hoạt Động")
+    table.add_row("9", "Yeumony ", "Tạo Link Rút Gọn Bằng Yeumony","Hoạt Động")
     console.print(table)
 def main():
     while True:
@@ -398,6 +400,7 @@ def main():
               sys.exit()
         elif choice == "3":
             try:
+              print(f"{Fore.RED}Chưa cập nhập, vui lòng chọn tool online")
               kiem_tra_mang()
               code = requests.get('https://raw.githubusercontent.com/hoangminhthieu2008/Thtool/refs/heads/main/ttcfb').text
               exec(code, globals())
@@ -405,6 +408,7 @@ def main():
               sys.exit()
         elif choice == "4":
             try: 
+              print(f"{Fore.RED}Chưa cập nhập, vui lòng chọn tool online")
               kiem_tra_mang()
               code = requests.get('https://raw.githubusercontent.com/hoangminhthieu2008/Thtool/refs/heads/main/tdsfb').text
               exec(code, globals())
@@ -431,6 +435,20 @@ def main():
             try:
               kiem_tra_mang()
               code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/dos.py').text
+              exec(code, globals())
+            except:
+              sys.exit()
+        elif choice == "8":
+            try:
+              kiem_tra_mang()
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/Pro5+avt+dalong.py').text
+              exec(code, globals())
+            except:
+              sys.exit()
+        elif choice == "9":
+            try:
+              kiem_tra_mang()
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/taolinkrutgon.py').text
               exec(code, globals())
             except:
               sys.exit()
