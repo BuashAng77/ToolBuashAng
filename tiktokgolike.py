@@ -224,9 +224,9 @@ def dsacc():
     
     # Create a Rich table
     table = Table(title="Danh Sách Tài Khoản TikTok", title_style="white", show_lines=True)
-    table.add_column("STT", justify="center", style="cyan", no_wrap=True)
-    table.add_column("Tài Khoản username", justify="left", style="yellow")
-    table.add_column("Account ID", justify="left", style="green")
+    table.add_column("STT", justify="center", style="blink cyan", no_wrap=True)
+    table.add_column("Tài Khoản username", justify="left", style="blink yellow")
+    table.add_column("Account ID", justify="left", style="blink green")
     table.add_column("Trạng Thái Tài Khoản", justify="center", style="bold magenta ")
     
     # Populate the table with account data
