@@ -4,48 +4,60 @@ import time
 import cloudscraper
 import requests
 from datetime import datetime
-from colorama import Fore, init
+from colorama import Fore, Style, init
 from rich.table import Table
 from rich.console import Console
+from PIL import Image
+from io import BytesIO
+from pystyle import Colorate
+from rich.panel import Panel
+from rich.text import Text
+import random
 
-# Khởi tạo colorama và rich
+# Khởi tạo colorama
 init(autoreset=True)
 console = Console()
+
+# Định nghĩa màu trực tiếp trong mã
+PRIMARY = Fore.YELLOW
+TEXT = Fore.WHITE
+SUCCESS = Fore.GREEN
+ERROR = Fore.RED
+INFO = Fore.CYAN
+PROMPT = Fore.MAGENTA
+RESET = Style.RESET_ALL
+
+def format_color(text, color):
+    """Định dạng văn bản với màu được chỉ định."""
+    return f"{color}{text}{RESET}"
+
+def highlight(text, color=PRIMARY):
+    """Tô sáng văn bản với màu chính hoặc màu được chỉ định."""
+    return f"{Style.BRIGHT}{color}{text}{RESET}"
 
 cookie_file = "twitter_cookie.txt"
 
 # Banner
 banner = f"""
-{Fore.YELLOW}╔══════════════════════════════════════════════════════╗
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██████╗░██╗░░░██╗░█████╗░░██████╗██╗░░██║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██╗██╔════╝██║░░██║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██████╦╝██║░░░██║███████║╚█████╗░███████║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██║░╚═══██╗██╔══██║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██████╦╝╚██████╔╝██║░░██║██████╔╝██║░░██║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}╚═════╝░░╚═════╝░╚═╝░░╚═╝╚═════╝░╚═╝░░╚═╝           {Fore.YELLOW}║
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║             
-{Fore.YELLOW}║  {Fore.WHITE}          ░█████╗░███╗░░██║░██████╗░                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ██╔══██╗████╗░██║██╔════╝░                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ███████║██╔██╗██║██║░░██╗░                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ██╔══██║██║╚████║██║░░╚██╗                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ██║░░██║██║░╚███║╚██████╔╝                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ╚═╝░░╚═╝╚═╝░░╚══╝░╚═════╝░                {Fore.YELLOW}║
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛            {Fore.YELLOW}║
-{Fore.YELLOW}╚══════════════════════════════════════════════════════╝
+{PRIMARY}╔══════════════════════════════════════════════════════╗
+{PRIMARY}║                                                      {PRIMARY}║
+{PRIMARY}║  {TEXT}██████╗░██╗░░░██║░█████╗░░██████╗██╗░░██║           {PRIMARY}║
+{PRIMARY}║  {TEXT}██╔══██╗██║░░░██║██╔══██╗██╔════╝██║░░██║           {PRIMARY}║
+{PRIMARY}║  {TEXT}██████╦╝██║░░░██║███████║╚█████╗░███████║           {PRIMARY}║
+{PRIMARY}║  {TEXT}██╔══██╗██║░░░██║██╔══██║░╚═══██╗██╔══██║           {PRIMARY}║
+{PRIMARY}║  {TEXT}██████╦╝╚██████╔╝██║░░██║██████╔╝██║░░██║           {PRIMARY}║
+{PRIMARY}║  {TEXT}╚═════╝░░╚═════╝░╚═╝░░╚═╝╚═════╝░╚═╝░░╚═╝           {PRIMARY}║
+{PRIMARY}║                                                      {PRIMARY}║             
+{PRIMARY}║  {TEXT}          ░█████╗░███╗░░██║░██████╗░                {PRIMARY}║
+{PRIMARY}║  {TEXT}          ██╔══██╗████╗░██║██╔════╝░                {PRIMARY}║
+{PRIMARY}║  {TEXT}          ███████║██╔██╗██║██║░░██╗░                {PRIMARY}║
+{PRIMARY}║  {TEXT}          ██╔══██║██║╚████║██║░░╚██╗                {PRIMARY}║
+{PRIMARY}║  {TEXT}          ██║░░██║██║░╚███║╚██████╔╝                {PRIMARY}║
+{PRIMARY}║  {TEXT}          ╚═╝░░╚═╝╚═╝░░╚══╝░╚═════╝░                {PRIMARY}║
+{PRIMARY}║                                                      {PRIMARY}║
+{PRIMARY}║              {PRIMARY}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛            {PRIMARY}║
+{PRIMARY}╚══════════════════════════════════════════════════════╝
 """
-from pystyle import Colors, Colorate
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
-import requests, os, random
-from time import sleep
-from colorama import Fore, init
-from datetime import datetime
-
-# Initialize colorama
-init()
 
 list_clone = []
 list_img = []
@@ -58,39 +70,15 @@ class API_PRO5_BYBUASHANG:
     def banner(self):
         os.system('title TOOL REG PAGR PRO5 + UP AVT | ĐA LUỒNG')
         os.system("cls" if os.name == "nt" else "clear")
-        banner = f"""
-{Fore.YELLOW}╔══════════════════════════════════════════════════════╗
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██████╗░██╗░░░██╗░█████╗░░██████╗██╗░░██║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██╗██╔════╝██║░░██║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██████╦╝██║░░░██║███████║╚█████╗░███████║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██║░╚═══██╗██╔══██║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}██████╦╝╚██████╔╝██║░░██║██████╔╝██║░░██║           {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}╚═════╝░░╚═════╝░╚═╝░░╚═╝╚═════╝░╚═╝░░╚═╝           {Fore.YELLOW}║
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║             
-{Fore.YELLOW}║  {Fore.WHITE}          ░█████╗░███╗░░██╗░██████╗░                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ██╔══██╗████╗░██║██╔════╝░                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ███████║██╔██╗██║██║░░██╗░                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ██╔══██║██║╚████║██║░░╚██╗                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ██║░░██║██║░╚███║╚██████╔╝                {Fore.YELLOW}║
-{Fore.YELLOW}║  {Fore.WHITE}          ╚═╝░░╚═╝╚═╝░░╚══╝░╚═════╝░                {Fore.YELLOW}║
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║              {Fore.YELLOW}Date: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}               {Fore.YELLOW}║
-{Fore.YELLOW}╚══════════════════════════════════════════════════════╝
-"""
         print(banner)
     
     def ndp_delay_tool(self, p):
-        while(p > 1):
-            p = p - 1
-            print(f'\033[0;34m[🌸BUASHANG🌸]\033[1;32m[|][LO......][{p}]','     ',end='\r');sleep(1/6)
-            print(f'\033[0;34m[🌸BUASHANG🌸]\033[1;32m[/][LOA.....][{p}]','     ',end='\r');sleep(1/6)
-            print(f'\033[0;34m[🌸BUASHANG🌸]\033[1;32m[-][LOAD....][{p}]','     ',end='\r');sleep(1/6)
-            print(f'\033[0;34m[🌸BUASHANG🌸]\033[1;32m[+][LOADI...][{p}]','     ',end='\r');sleep(1/6)
-            print(f'\033[0;34m[🌸BUASHANG🌸]\033[1;32m[\][LOADIN..][{p}]','     ',end='\r');sleep(1/6)
-            print(f'\033[0;34m[🌸BUASHANG🌸]\033[1;32m[|][LOADING.][{p}]','     ',end='\r');sleep(1/6)
+        """Hàm xử lý delay countdown và hiển thị thời gian còn lại."""
+        while p > 1:
+            print(f"{format_color(f'Đang chờ: {p-1} giây còn lại...', INFO)}", end="\r")
+            time.sleep(1)
+            p -= 1
+        print(f"{format_color('Hoàn tất chờ, tiếp tục tạo page...', INFO)}")
     
     def getthongtinfacebook(self, cookie: str):
         headers_get = {
@@ -111,36 +99,104 @@ class API_PRO5_BYBUASHANG:
             'cookie': cookie
         }
         try:
-            print(f'\033[0;31mĐang Tiến Hành Check Live', end="\r")
+            print(f"{format_color('Đang Tiến Hành Check Live', INFO)}", end="\r")
             url_profile = requests.get('https://www.facebook.com/me', headers=headers_get).url
             get_dulieu_profile = requests.get(url=url_profile, headers=headers_get).text
         except:
             return False
+        
         try:
-            uid_get = cookie.split('c_user=')[1].split(';')[0]
-            fb_dtsg_get = get_dulieu_profile.split('{"name":"fb_dtsg","value":"')[1].split('"},')[0]
-            jazoest_get = get_dulieu_profile.split('{"name":"jazoest","value":"')[1].split('"},')[0]
-            name_get = get_dulieu_profile.split('<title>')[1].split('</title>')[0]
-            return name_get, uid_get, fb_dtsg_get, jazoest_get
-        except:
-            try:
-                uid_get = cookie.split('c_user=')[1].split(';')[0]
-                fb_dtsg_get = get_dulieu_profile.split(',"f":"')[1].split('","l":null}')[0]
-                jazoest_get = get_dulieu_profile.split('&jazoest=')[1].split('","e":"')[0]
-                name_get = get_dulieu_profile.split('<title>')[1].split('</title>')[0]
-                return name_get, uid_get, fb_dtsg_get, jazoest_get
-            except:
+            # Kiểm tra và lấy uid từ cookie
+            if 'c_user=' not in cookie:
                 return False
-    
-    def UpAvt(self, cookie, id_page, link_anh):
-        sleep(5)
-        try:
-            json_upavt = requests.get(f'https://api-ndpcutevcl.000webhostapp.com/api/upavtpage.php?cookie={cookie}&id={id_page}&link_anh={link_anh}').json()
-            if json_upavt['status'] == 'success':
-                return json_upavt
+            uid_get = cookie.split('c_user=')[1].split(';')[0] if len(cookie.split('c_user=')) > 1 else None
+            
+            if not uid_get:
+                return False
+            
+            # Lấy fb_dtsg và jazoest
+            fb_dtsg_parts = get_dulieu_profile.split('{"name":"fb_dtsg","value":"')
+            jazoest_parts = get_dulieu_profile.split('{"name":"jazoest","value":"')
+            if len(fb_dtsg_parts) > 1 and len(jazoest_parts) > 1:
+                fb_dtsg_get = fb_dtsg_parts[1].split('"},')[0]
+                jazoest_get = jazoest_parts[1].split('"},')[0]
+            else:
+                fb_dtsg_get = get_dulieu_profile.split(',"f":"')[1].split('","l":null}')[0] if ',"f":"' in get_dulieu_profile else None
+                jazoest_get = get_dulieu_profile.split('&jazoest=')[1].split('","e":"')[0] if '&jazoest=' in get_dulieu_profile else None
+                if not fb_dtsg_get or not jazoest_get:
+                    return False
+            
+            # Lấy name và username
+            name_parts = get_dulieu_profile.split('<title>')
+            if len(name_parts) > 1:
+                name_get = name_parts[1].split('</title>')[0]
             else:
                 return False
+            
+            username_get = url_profile.split('facebook.com/')[1].split('?')[0] if 'facebook.com/' in url_profile else 'unknown'
+            return name_get, uid_get, fb_dtsg_get, jazoest_get, username_get
         except:
+            return False
+    
+    def UpAvt(self, cookie, id_page, link_anh):
+        try:
+            response = requests.get(link_anh)
+            response.raise_for_status()
+            img = Image.open(BytesIO(response.content))
+            img = img.resize((200, 200), Image.LANCZOS)
+            img_bytes = BytesIO()
+            img.save(img_bytes, format='JPEG')
+            img_bytes.name = 'avatar.jpg'
+            
+            headers_upload = {
+                'authority': 'www.facebook.com',
+                'accept': '*/*',
+                'accept-language': 'vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5',
+                'origin': 'https://www.facebook.com',
+                'referer': f'https://www.facebook.com/{id_page}/settings/?tab=profile',
+                'sec-ch-prefers-color-scheme': 'dark',
+                'sec-ch-ua': '"Google Chrome";v="107", "Chromium";v="107", "Not=A?Brand";v="24"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+                'cookie': cookie
+            }
+            
+            files = {
+                'file': ('avatar.jpg', img_bytes.getvalue(), 'image/jpeg')
+            }
+            data = {
+                'profile_id': id_page,
+                'source': 'profile_edit',
+                'fb_dtsg': self.getthongtinfacebook(cookie)[2],
+                'jazoest': self.getthongtinfacebook(cookie)[3]
+            }
+            
+            response = requests.post(
+                'https://www.facebook.com/api/graphql/',
+                headers=headers_upload,
+                data={'variables': json.dumps({
+                    'input': {
+                        'file_id': '0',
+                        'profile_id': id_page,
+                        'source': 'PROFILE_PHOTO',
+                        'client_mutation_id': '1'
+                    }
+                })},
+                files=files
+            )
+            
+            if response.status_code == 200 and response.text and 'data' in response.json():
+                print(f"{format_color(f'╰─> UP_AVT_SUCCESS | [UID PAGE: {id_page}]', SUCCESS)}")
+                return True
+            else:
+                print(f"{format_color(f'╰─> UP_AVT_ERROR | [UID PAGE: {id_page}] | {response.text}', ERROR)}")
+                return False
+        except Exception as e:
+            print(f"{format_color(f'╰─> UP_AVT_ERROR | [UID PAGE: {id_page}] | ERROR: {str(e)}', ERROR)}")
             return False
     
     def RegPage(self, cookie, name, uid, fb_dtsg, jazoest):
@@ -194,12 +250,12 @@ class API_PRO5_BYBUASHANG:
         }
         try:
             idpage = requests.post('https://www.facebook.com/api/graphql/', headers=headers_reg, data=data_reg, timeout=20).json()['data']['additional_profile_plus_create']['additional_profile']['id']
+            global dem
             dem += 1
-            print(f'\033[1;35m{dem} | SUCCESS | NAME FB: {name} | UID PRO5: {idpage} | NAME PRO5: {namepage}')
-            return idpage
+            return idpage, namepage
         except:
-            print('\033[0;31mReg Thất Bại Có Vẻ Acc Của Bạn Đã Bị Block!!')
-            return False
+            print(f"{format_color('Reg Thất Bại Có Vẻ Acc Của Bạn Đã Bị Block!!', ERROR)}")
+            return False, None
     
     def UpdateBioPage(self, cookie, id_page, fb_dtsg, jazoest, bio):
         headers_update = {
@@ -227,82 +283,103 @@ class API_PRO5_BYBUASHANG:
             'jazoest': jazoest,
             'variables': f'{{"input":{{"about":"{bio}","page_id":"{id_page}","client_mutation_id":"1"}}}}',
             'server_timestamps': 'true',
-            'doc_id': '5069381243170066'  # Có thể cần kiểm tra lại doc_id
+            'doc_id': '5069381243170066'
         }
         try:
-            response = requests.post('https://www.facebook.com/api/graphql/', headers=headers_update, data=data_update, timeout=20).json()
-            if 'data' in response and response['data']:
-                print(f'\033[1;32m ╰─> UPDATE_BIO_SUCCESS | [UID PAGE: {id_page}] | BIO: {bio}')
+            response = requests.post('https://www.facebook.com/api/graphql/', headers=headers_update, data=data_update, timeout=20)
+            if response.status_code == 200 and response.text and 'data' in response.json():
+                print(f"{format_color(f'╰─> UPDATE_BIO_SUCCESS | [UID PAGE: {id_page}] | BIO: {bio}', SUCCESS)}")
                 return True
             else:
-                print(f'\033[0;31m ╰─> UPDATE_BIO_ERROR | [UID PAGE: {id_page}]')
+                print(f"{format_color(f'╰─> UPDATE_BIO_ERROR | [UID PAGE: {id_page}] | {response.text}', ERROR)}")
                 return False
         except Exception as e:
-            print(f'\033[0;31m ╰─> UPDATE_BIO_ERROR | [UID PAGE: {id_page}] | ERROR: {str(e)}')
+            print(f"{format_color(f'╰─> UPDATE_BIO_ERROR | [UID PAGE: {id_page}] | ERROR: {str(e)}', ERROR)}")
             return False
 
 # =========================== [ START TOOL ] ===========================
 dpcutevcl = API_PRO5_BYBUASHANG()
 dpcutevcl.banner()
-print('\033[1;32m[ENTER - ĐỂ DỪNG NHẬP]')
+print(f"{PRIMARY}─" * 50)
+print(f"{format_color('[ENTER - ĐỂ DỪNG NHẬP]', INFO)}")
 while True:
     stt += 1
-    cookie_fb = input(f'\033[1;32mVUI LÒNG NHẬP COOKIE THỨ \033[1;39m[{stt}]:\033[1;35m')
+    cookie_fb = input(f"{format_color(f'VUI LÒNG NHẬP COOKIE THỨ [{stt}]: ', PROMPT)}")
     if cookie_fb == '':
         break
     checklive = dpcutevcl.getthongtinfacebook(cookie_fb)
     if checklive != False:
-        print('\033[1;32mName Facebook: \033[0;31m ' + checklive[0])
-        list_clone.append(f'{cookie_fb}|{checklive[0]}|{checklive[1]}|{checklive[2]}|{checklive[3]}')
-        print('\033[1;36m─' * 50)
+        name, uid, fb_dtsg, jazoest, username = checklive
+        print(f"{format_color(f'Name Facebook: {name} | Username: {username}', TEXT)}")
+        list_clone.append(f'{cookie_fb}|{name}|{uid}|{fb_dtsg}|{jazoest}|{username}')
+        print(f"{PRIMARY}─" * 50)
     else:
         stt -= 1
-        print('Cookie ' + cookie_fb.split('c_user=')[1].split(';')[0] + ', Die Or Out Vui Lòng Kiểm Tra Lại!!')
+        print(f"{format_color(f'Cookie {cookie_fb.split('c_user=')[1].split(';')[0] if 'c_user=' in cookie_fb and len(cookie_fb.split('c_user=')) > 1 else cookie_fb}, Die Or Out Vui Lòng Kiểm Tra Lại!!', ERROR)}")
 
 # Tiến Hành Nhập Setting Reg Page
-print('\033[1;36m─' * 50)
-luachon = input('\033[1;34mBẠN MUỐN REG PAGE XONG UP AVT KHÔNG? [Y/N]: ')
-print('\033[1;36m─' * 50)
-print('\033[1;37m[ENTER - ĐỂ DỪNG NHẬP]')
+print(f"{PRIMARY}─" * 50)
+luachon = input(f"{format_color('BẠN MUỐN REG PAGE XONG UP AVT KHÔNG? [Y/N]: ', PROMPT)}")
+print(f"{PRIMARY}─" * 50)
+print(f"{format_color('[ENTER - ĐỂ DỪNG NHẬP]', INFO)}")
 while True:
     stt2 += 1 
-    link_img = input(f'\033[1;34mVUI LÒNG NHẬP LINK ẢNH THỨ [{stt2}]: ')
+    link_img = input(f"{format_color(f'VUI LÒNG NHẬP LINK ẢNH THỨ [{stt2}]: ', PROMPT)}")
     if link_img == '':
         break
     list_img.append(link_img)
-print('\033[1;36m─' * 50)
-slpage = int(input(' \033[1;32mBẠN MUỐN TẠO BAO NHIÊU PAGE THÌ DỪNG TOOL: '))
-print('\033[1;36m─' * 50)
-delay = int(input(' \033[1;32mVUI LÒNG NHẬP DELAY REG PAGE: '))
-print('\033[1;36m─' * 50)
+print(f"{PRIMARY}─" * 50)
+slpage = int(input(f"{format_color('BẠN MUỐN TẠO BAO NHIÊU PAGE THÌ DỪNG TOOL: ', PROMPT)}"))
+print(f"{PRIMARY}─" * 50)
+delay = int(input(f"{format_color('VUI LÒNG NHẬP DELAY REG PAGE: ', PROMPT)}"))
+print(f"{PRIMARY}─" * 50)
 
 # Đặt bio cố định
 list_bio = ["Reg Auto By Buash Ang"]
 
+# Tạo bảng rich
+table = Table(title="Kết Quả Reg Pro5")
+table.add_column("STT", justify="center", style="yellow")
+table.add_column("Username", justify="center", style="white")
+table.add_column("ID Page", justify="center", style="white")
+table.add_column("Time", justify="center", style="yellow")
+
 # Tiến Hành Chạy Tool
 dpcutevcl.banner()
-print('\033[1;36m─' * 50)
-print('\033[1;35mĐã Tìm Thấy: ' + str(len(list_clone)) + ' Cookie')
-print('\033[1;35mĐã Tìm Thấy: ' + str(len(list_img)) + ' Link Image')
-print('\033[1;36m─' * 50)
+print(f"{PRIMARY}─" * 50)
+print(f"{format_color(f'Đã Tìm Thấy: {str(len(list_clone))} Cookie', INFO)}")
+print(f"{format_color(f'Đã Tìm Thấy: {str(len(list_img))} Link Image', INFO)}")
+print(f"{PRIMARY}─" * 50)
 while True:
     for dulieuclone in list_clone:
-        cookie, name, uid, fb_dtsg, jazoest = dulieuclone.split('|')
-        idpage = dpcutevcl.RegPage(cookie, name, uid, fb_dtsg, jazoest)
+        cookie, name, uid, fb_dtsg, jazoest, username = dulieuclone.split('|')
+        idpage, namepage = dpcutevcl.RegPage(cookie, name, uid, fb_dtsg, jazoest)
         if idpage:
-            if luachon == 'Y' or luachon == 'y':
-                link_anh = random.choice(list_img)
-                up_avt_result = dpcutevcl.UpAvt(cookie, idpage, link_anh)
-                if up_avt_result:
-                    print(f'\033[1;32m ╰─> UP_AVT_SUCCESS | [UID PAGE: {idpage}]')
-                else:
-                    print(f'\033[0;31m ╰─> UP_AVT_ERROR | [UID PAGE: {idpage}]')
+            current_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+            table.add_row(str(dem), username, idpage, current_time)
+            console.print(table)
             
-            # Cập nhật tiểu sử
-            bio = list_bio[0]  # Lấy bio cố định
-            dpcutevcl.UpdateBioPage(cookie, idpage, fb_dtsg, jazoest, bio)
+            if luachon == 'Y' or luachon == 'y':
+                link_anh = 'https://photo.znews.vn/w660/Uploaded/lce_jwqqc/2022_12_12/stream_2022_12_12T202958.838_1.jpg'
+                try:
+                    if dpcutevcl.UpAvt(cookie, idpage, link_anh):
+                        print(f"{format_color(f'╰─> UP_AVT_SUCCESS | [UID PAGE: {idpage}]', SUCCESS)}")
+                    else:
+                        print(f"{format_color(f'╰─> UP_AVT_SKIPPED | [UID PAGE: {idpage}] - Không cập nhật avatar', INFO)}")
+                except Exception as e:
+                    print(f"{format_color(f'╰─> UP_AVT_ERROR | [UID PAGE: {idpage}] | ERROR: {str(e)}', ERROR)}")
+            
+            bio = list_bio[0]
+            try:
+                if dpcutevcl.UpdateBioPage(cookie, idpage, fb_dtsg, jazoest, bio):
+                    print(f"{format_color(f'╰─> UPDATE_BIO_SUCCESS | [UID PAGE: {idpage}] | BIO: {bio}', SUCCESS)}")
+                else:
+                    print(f"{format_color(f'╰─> UPDATE_BIO_SKIPPED | [UID PAGE: {idpage}]', INFO)}")
+            except Exception as e:
+                print(f"{format_color(f'╰─> UPDATE_BIO_ERROR | [UID PAGE: {idpage}] | ERROR: {str(e)}', ERROR)}")
         
-        dpcutevcl.ndp_delay_tool(delay)
+        dpcutevcl.ndp_delay_tool(delay)  # Gọi hàm delay với hiển thị thời gian
         if dem == slpage:
-            input(f'\033[1;35mDone {dem}, Page </> ENTER ĐỂ EXIT')
+            console.print(Panel(f"[bold yellow]Hoàn thành {dem} trang![/bold yellow]", title="Kết thúc"))
+            input(f"{format_color(f'Done {dem}, Page </> ENTER ĐỂ EXIT', INFO)}")
             exit()
