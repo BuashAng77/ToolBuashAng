@@ -171,7 +171,7 @@ def nhannv(account_id):
 def hoanthanh(ads_id, account_id):
     try:
         json_data = {
-            'ads_id': ads_id,
+  'ads_id': ads_id,
             'account_id': account_id,
             'async': True,
             'data': None,
@@ -223,23 +223,38 @@ def dsacc():
         quit()
     
     # Create a Rich table
-    table = Table(title="Danh Sách Tài Khoản TikTok", title_style="white", show_lines=True)
-    table.add_column("STT", justify="center", style="blink cyan", no_wrap=True)
+    table = Table(title="Danh Sách Tài Khoản TikTok", title_style="blink #FFFFFF ", show_lines=True)
+    table.add_column("STT", justify="center", style="blink #C82E31", no_wrap=True)
     table.add_column("Tài Khoản username", justify="left", style="blink yellow")
     table.add_column("Account ID", justify="left", style="blink green")
-    table.add_column("Trạng Thái Tài Khoản", justify="center", style="bold magenta ")
+    table.add_column("Lần Cuối Làm Nhiệm Vụ", justify="center", style="bold #00B2BF")  # Cột hiển thị updated_at
+    table.add_column("Trạng Thái Tài Khoản", justify="center", style="bold #79378B")
     
     # Populate the table with account data
     for i in range(len(chontktiktok["data"])):
         unique_username = str(chontktiktok["data"][i].get("unique_username", "N/A"))
         account_id = str(chontktiktok["data"][i].get("id", "N/A"))
         status = chontktiktok["data"][i].get("status", "N/A")
+        # Xử lý updated_at
+        updated_at_raw = chontktiktok["data"][i].get("updated_at", "N/A")
+        updated_at_display = "N/A"
+        if updated_at_raw != "N/A":
+            try:
+                updated_at = datetime.strptime(updated_at_raw, "%Y-%m-%dT%H:%M:%S.%fZ")
+                updated_at_formatted = updated_at.strftime("%d/%m/%Y %H:%M:%S")
+                # Tính số ngày cách nhau
+                current_time = datetime.now()
+                delta_days = (current_time - updated_at).days
+                updated_at_display = f"{updated_at_formatted} (số ngày: {delta_days})"  # Giữ định dạng như yêu cầu
+            except:
+                updated_at_display = updated_at_raw  # Giữ nguyên nếu không parse được
         # Chuyển đổi trạng thái số 1 thành "Hoạt Động" và thêm icon
         status_display = f"Hoạt Động {random.choice(account_icons)}" if str(status) == "1" else str(status)
         table.add_row(
             str(i + 1),
             unique_username,
             account_id,
+            updated_at_display,  # Hiển thị giá trị updated_at với số ngày
             status_display
         )
     
