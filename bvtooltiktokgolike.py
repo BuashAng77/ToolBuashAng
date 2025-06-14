@@ -1,3 +1,36 @@
+import subprocess
+import sys
+required_packages = {
+    "requests": "requests",
+    "pystyle": "pystyle",
+    "colorama": "colorama",
+    "rich": "rich",
+    "bs4": "beautifulsoup4",
+last week
+
+Update Menuchinh.py
+    "cloudscraper": "cloudscraper",
+    "pytz": "pytz"
+last week
+
+Add files via upload
+}
+missing = False
+for module_name, pip_name in required_packages.items():
+    try:
+        __import__(module_name)
+    except ImportError:
+        print(f"Đang cài đặt thư viện thiếu: {pip_name} ...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+            missing = True
+        except Exception as e:
+            print(f"Cài thư viện {pip_name} thất bại: {e}")
+            missing = True
+if missing:
+    print("\nĐã cài đặt thư viện cần thiết.")
+    print("Vui lòng **chạy lại tool**.")
+    sys.exit()
 import json
 import os
 import time
