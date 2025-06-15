@@ -6,14 +6,8 @@ required_packages = {
     "colorama": "colorama",
     "rich": "rich",
     "bs4": "beautifulsoup4",
-last week
-
-Update Menuchinh.py
     "cloudscraper": "cloudscraper",
     "pytz": "pytz"
-last week
-
-Add files via upload
 }
 missing = False
 for module_name, pip_name in required_packages.items():
