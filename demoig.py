@@ -4,31 +4,23 @@ import time
 import random
 import cloudscraper
 import requests
+import socket
 from datetime import datetime
 from colorama import Fore, init
 from pystyle import Colors, Colorate
 from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
 from rich.table import Table
+from rich.panel import Panel
 
-init()  # Initialize colorama
+init()
 
-# Lists for icons (giữ nguyên)
 animal_emojis = ["🐶", "🐱", "🐻", "🦁", "🐼", "🐯", "🐷", "🐻‍❄️", "🐭", "🦊"]
 account_icons = ["♥️", "🔥", "🌸", "⚡", "💮", "🌼", "💡", "🔔"]
 dynamic_icons = ["⏳", "🔄", "💌", "⌛"]
 colors = [
-    "\033[1;31m",  # Red
-    "\033[1;32m",  # Green
-    "\033[1;33m",  # Yellow
-    "\033[1;34m",  # Blue
-    "\033[1;35m",  # Magenta
-    "\033[1;36m",  # Cyan
-    "\033[1;97m",  # White
+    "\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;35m", "\033[1;36m", "\033[1;97m",
 ]
 
-# Các hàm tiện ích như kiem_tra_mang, initialize_files, load_credentials, save_credentials, save_instagram_cookie, load_instagram_cookie giữ nguyên
 def kiem_tra_mang():
     try:
         socket.create_connection(("8.8.8.8", 53), timeout=10)
@@ -37,30 +29,19 @@ def kiem_tra_mang():
         quit()
 
 def initialize_files():
-    """Tạo file Authorization.txt và token.txt nếu chưa tồn tại."""
     files = ["Authorization.txt", "token.txt"]
     for file_name in files:
         if not os.path.exists(file_name):
-            try:
-                with open(file_name, "w") as f:
-                    f.write("")  # Tạo file rỗng
-                print(f"\033[1;32mĐã tạo file {file_name} thành công! ✅")
-            except Exception as e:
-                print(f"\033[1;31mLỗi khi tạo file {file_name}: {e} ❌")
-                quit()
-    # Tạo instagram_cookie.txt riêng, chỉ khi cần
-    if not os.path.exists("instagram_cookie.txt"):
-        try:
-            with open("instagram_cookie.txt", "w") as f:
+            with open(file_name, "w") as f:
                 f.write("")
-            print("\033[1;32mĐã tạo file instagram_cookie.txt thành công! ✅")
-        except Exception as e:
-            print(f"\033[1;31mLỗi khi tạo file instagram_cookie.txt: {e} ❌")
-            quit()
+            print(f"\033[1;32mĐã tạo file {file_name} thành công! ✅")
+    if not os.path.exists("instagram_cookie.txt"):
+        with open("instagram_cookie.txt", "w") as f:
+            f.write("")
+        print("\033[1;32mĐã tạo file instagram_cookie.txt thành công! ✅")
 
 def load_credentials():
-    """Đọc Authorization và Token từ file, trả về giá trị hoặc chuỗi rỗng nếu file rỗng."""
-    initialize_files()  # Đảm bảo file tồn tại
+    initialize_files()
     try:
         with open("Authorization.txt", "r") as auth_file, open("token.txt", "r") as token_file:
             author = auth_file.read().strip()
@@ -71,7 +52,6 @@ def load_credentials():
         return "", ""
 
 def save_credentials(author, token):
-    """Lưu Authorization và Token vào file."""
     try:
         with open("Authorization.txt", "w") as auth_file, open("token.txt", "w") as token_file:
             auth_file.write(author)
@@ -82,7 +62,6 @@ def save_credentials(author, token):
         quit()
 
 def save_instagram_cookie(instagram_cookie):
-    """Lưu Instagram Cookie vào file."""
     try:
         with open("instagram_cookie.txt", "w") as cookie_file:
             cookie_file.write(instagram_cookie)
@@ -92,7 +71,6 @@ def save_instagram_cookie(instagram_cookie):
         quit()
 
 def load_instagram_cookie():
-    """Đọc Instagram Cookie từ file, trả về chuỗi rỗng nếu file rỗng."""
     try:
         with open("instagram_cookie.txt", "r") as cookie_file:
             return cookie_file.read().strip()
@@ -100,9 +78,7 @@ def load_instagram_cookie():
         print(f"\033[1;31mLỗi khi đọc file instagram_cookie.txt: {e} ❌")
         return ""
 
-# Cập nhật headers cho Instagram API với các giá trị động
 def update_instagram_headers(instagram_cookie):
-    """Cập nhật headers cho Instagram API với cookie."""
     headers = {
         'accept': '*/*',
         'accept-language': 'en-US,en;q=0.9',
@@ -113,50 +89,42 @@ def update_instagram_headers(instagram_cookie):
         'sec-fetch-dest': 'empty',
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-origin',
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
         'x-asbd-id': '129477',
         'x-ig-app-id': '936619743392459',
         'x-requested-with': 'XMLHttpRequest',
     }
-    # Trích xuất csrftoken từ cookie
     if 'csrftoken=' in instagram_cookie:
         headers['x-csrftoken'] = instagram_cookie.split('csrftoken=')[1].split(';')[0]
     else:
         headers['x-csrftoken'] = ''
     headers['x-ig-www-claim'] = 'hmac.AR1Jw2LrciyrzAQskwSVGREElPZZJZjW74y38oTjDnNHOu9e'
     headers['x-instagram-ajax'] = '1014868636'
+    print("\033[1;36m[1] iPhone\n[2] Android")
+    ua_choice = input("\033[1;32mChọn user-agent (1/2): \033[1;33m")
+    if ua_choice == "2":
+        headers['user-agent'] = 'Mozilla/5.0 (Linux; Android 13; SM-G960F Build/QP1A.190711.020; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/126.0.6478.122 Mobile Safari/537.36'
+    else:
+        headers['user-agent'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
     return headers
 
 def check_instagram_cookie(instagram_cookie, username):
-    """Kiểm tra xem cookie Instagram có hợp lệ hay không."""
     ses = requests.Session()
     headers = update_instagram_headers(instagram_cookie)
     ses.headers.update(headers)
     try:
-        # Gửi yêu cầu đến endpoint lấy thông tin người dùng
         url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
         response = ses.get(url)
-        if response.status_code == 200 and '"status":"ok"' in response.text:
-            print(f"\033[1;32mCookie hợp lệ cho tài khoản {username} ✅")
-            return True
-        else:
-            print(f"\033[1;31mCookie không hợp lệ cho tài khoản {username}. Status: {response.status_code}, Response: {response.text} ❌")
-            return False
-    except Exception as e:
-        print(f"\033[1;31mLỗi khi kiểm tra cookie: {str(e)} ❌")
+        return response.status_code == 200 and '"status":"ok"' in response.text
+    except Exception:
         return False
 
 def perform_instagram_action(object_id, job_type, instagram_cookie, username):
-    """Thực hiện hành động Follow hoặc Like trên Instagram bằng cookie."""
-    # Kiểm tra cookie trước khi thực hiện hành động
     if not check_instagram_cookie(instagram_cookie, username):
-        print("\033[1;31mCookie không hợp lệ, vui lòng nhập cookie mới! ❌")
         new_cookie = input("\033[1;32mNhập Instagram Cookie mới: \033[1;33m").strip()
         if not new_cookie:
-            print("\033[1;31mCookie không được để trống! ❌")
             return False, ""
         save_instagram_cookie(new_cookie)
-        return False, new_cookie  # Trả về cookie mới để cập nhật
+        return False, new_cookie
 
     ses = requests.Session()
     ses.headers.update(update_instagram_headers(instagram_cookie))
@@ -170,94 +138,41 @@ def perform_instagram_action(object_id, job_type, instagram_cookie, username):
                 'user_id': object_id,
             }
             response = ses.post(url, data=data)
-            if response.status_code == 200 and '"status":"ok"' in response.text:
-                print(f"\033[1;32mFollow thành công cho user_id: {object_id} ✅")
-                return True, instagram_cookie
-            else:
-                print(f"\033[1;31mFollow thất bại cho user_id: {object_id}. Status: {response.status_code}, Response: {response.text} ❌")
-                return False, instagram_cookie
+            return response.status_code == 200 and '"status":"ok"' in response.text, instagram_cookie
         elif job_type == "like":
             url = f"https://www.instagram.com/api/v1/web/likes/{object_id}/like/"
             response = ses.post(url, data={})
-            if response.status_code == 200 and '"status":"ok"' in response.text:
-                print(f"\033[1;32mLike thành công cho media_id: {object_id} ✅")
-                return True, instagram_cookie
-            else:
-                print(f"\033[1;31mLike thất bại cho media_id: {object_id}. Status: {response.status_code}, Response: {response.text} ❌")
-                return False, instagram_cookie
-        else:
-            print(f"\033[1;31mLoại job không hỗ trợ: {job_type} ❌")
-            return False, instagram_cookie
-    except Exception as e:
-        print(f"\033[1;31mLỗi khi thực hiện {job_type}: {str(e)} ❌")
+            return response.status_code == 200 and '"status":"ok"' in response.text, instagram_cookie
+        return False, instagram_cookie
+    except Exception:
         return False, instagram_cookie
 
 def baoloi(ads_id, object_id, account_id, loai):
     try:
-        json_data1 = {
-            'description': 'Tôi đã làm Job này rồi',
-            'users_advertising_id': ads_id,
-            'type': 'ads',
-            'provider': 'instagram',
-            'fb_id': account_id,
-            'error_type': 6,
-        }
+        json_data1 = {'description': 'Tôi đã làm Job này rồi', 'users_advertising_id': ads_id, 'type': 'ads', 'provider': 'instagram', 'fb_id': account_id, 'error_type': 6}
         scraper.post('https://gateway.golike.net/api/report/send', headers=headers, json=json_data1)
-        json_data2 = {
-            'instagram_users_advertising_id': ads_id,
-            'object_id': object_id,
-            'instagram_account_id': account_id,
-            'type': loai,
-        }
-        response = scraper.post(
-            'https://gateway.golike.net/api/advertising/publishers/instagram/skip-jobs',
-            headers=headers,
-            json=json_data2,
-        )
-        print(f"\033[1;33mĐã bỏ qua job {ads_id} với lý do: Tôi đã làm Job này rồi ⚠️")
-    except Exception as e:
-        print(f"\033[1;31mLỗi khi báo lỗi job {ads_id}: {str(e)} ❌")
+        json_data2 = {'instagram_users_advertising_id': ads_id, 'object_id': object_id, 'instagram_account_id': account_id, 'type': loai}
+        scraper.post('https://gateway.golike.net/api/advertising/publishers/instagram/skip-jobs', headers=headers, json=json_data2)
+    except Exception:
+        pass
 
-# Các hàm khác như chonacc, nhannv, hoanthanh, dsacc giữ nguyên
 def chonacc():
     json_data = {}
-    response = scraper.get(
-        'https://gateway.golike.net/api/instagram-account',
-        headers=headers,
-        json=json_data
-    ).json()
+    response = scraper.get('https://gateway.golike.net/api/instagram-account', headers=headers, json=json_data).json()
     return response
 
 def nhannv(account_id):
     try:
-        params = {
-            'instagram_account_id': account_id,
-            'data': 'null',
-        }
-        response = scraper.get(
-            'https://gateway.golike.net/api/advertising/publishers/instagram/jobs',
-            headers=headers,
-            params=params,
-            json={}
-        )
+        params = {'instagram_account_id': account_id, 'data': 'null'}
+        response = scraper.get('https://gateway.golike.net/api/advertising/publishers/instagram/jobs', headers=headers, params=params, json={})
         return response.json()
     except Exception:
         return {}
 
 def hoanthanh(ads_id, account_id):
     try:
-        json_data = {
-            'instagram_account_id': account_id,
-            'instagram_users_advertising_id': ads_id,
-            'async': True,
-            'data': 'null'
-        }
-        response = scraper.post(
-            'https://gateway.golike.net/api/advertising/publishers/instagram/complete-jobs',
-            headers=headers,
-            json=json_data,
-            timeout=6
-        )
+        json_data = {'instagram_account_id': account_id, 'instagram_users_advertising_id': ads_id, 'async': True, 'data': 'null'}
+        response = scraper.post('https://gateway.golike.net/api/advertising/publishers/instagram/complete-jobs', headers=headers, json=json_data, timeout=6)
         return response.json()
     except Exception:
         return {}
@@ -272,12 +187,12 @@ def dsacc():
         console.print("[bold red]Dữ liệu tài khoản không hợp lệ hoặc trống! ❌[/]")
         quit()
     
-    table = Table(title="Danh Sách Tài Khoản Instagram", title_style="blink #FFFFFF ", show_lines=True)
-    table.add_column("STT", justify="center", style="blink #C82E31", no_wrap=True)
-    table.add_column("Tài Khoản username", justify="left", style="blink yellow")
-    table.add_column("Account ID", justify="left", style="blink green")
-    table.add_column("Lần Cuối Làm Nhiệm Vụ", justify="center", style="bold #00B2BF")
-    table.add_column("Trạng Thái Tài Khoản", justify="center", style="bold #79378B")
+    table = Table(title="Danh Sách Tài Khoản Instagram", title_style="bold magenta", show_lines=True)
+    table.add_column("STT", justify="center", style="bold red", no_wrap=True)
+    table.add_column("Tài Khoản Username", justify="left", style="bold yellow")
+    table.add_column("Account ID", justify="left", style="bold green")
+    table.add_column("Lần Cuối Làm Nhiệm Vụ", justify="center", style="bold cyan")
+    table.add_column("Trạng Thái Tài Khoản", justify="center", style="bold purple")
     
     for i in range(len(choninstagram["data"])):
         username = str(choninstagram["data"][i].get("instagram_username", "N/A"))
@@ -295,17 +210,10 @@ def dsacc():
             except:
                 updated_at_display = updated_at_raw
         status_display = f"Hoạt Động {random.choice(account_icons)}" if str(status) == "1" else str(status)
-        table.add_row(
-            str(i + 1),
-            username,
-            account_id,
-            updated_at_display,
-            status_display
-        )
+        table.add_row(str(i + 1), username, account_id, updated_at_display, status_display)
     
     console.print(table)
 
-# Main program
 banner = f"""
 {Fore.YELLOW}╔══════════════════════════════════════════════════════╗
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
@@ -325,7 +233,7 @@ banner = f"""
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
-{Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛            {Fore.YELLOW}║
+{Fore.YELLOW}║              {Fore.YELLOW}Ngày: 18/06/2025 17:56:00 ⌛            {Fore.YELLOW}║
 {Fore.YELLOW}╚══════════════════════════════════════════════════════╝
 """
 
@@ -384,7 +292,7 @@ while True:
         while luachon > len(choninstagram["data"]):
             luachon = int(input("\033[1;31mAcc Này Không Có Trong Danh Sách, Hãy Nhập Lại ❌: \033[1;33m"))
         account_id = choninstagram["data"][luachon - 1]["id"]
-        username = choninstagram["data"][luachon - 1]["instagram_username"]  # Lấy username để kiểm tra cookie
+        username = choninstagram["data"][luachon - 1]["instagram_username"]
         instagram_cookie = load_instagram_cookie()
         if instagram_cookie:
             print(f"\033[1;32mCookie Instagram hiện tại: \033[1;33m{instagram_cookie[:50]}... (đã cắt bớt để hiển thị)")
@@ -443,7 +351,35 @@ while True:
         print(f"{Fore.WHITE}════════════════════════════════════════════════════")
         print(f"\033[1;31m  Acc Instagram {dsaccloi} gặp vấn đề ⚠️")
         print(f"{Fore.WHITE}════════════════════════════════════════════════════")
-        dsacc()
+
+        console = Console()
+        table = Table(title="Danh Sách Tài Khoản Instagram", title_style="bold magenta", show_lines=True)
+        table.add_column("STT", justify="center", style="bold red", no_wrap=True)
+        table.add_column("Tài Khoản Username", justify="left", style="bold yellow")
+        table.add_column("Account ID", justify="left", style="bold green")
+        table.add_column("Lần Cuối Làm Nhiệm Vụ", justify="center", style="bold cyan")
+        table.add_column("Trạng Thái Tài Khoản", justify="center", style="bold purple")
+        
+        for i in range(len(choninstagram["data"])):
+            username = str(choninstagram["data"][i].get("instagram_username", "N/A"))
+            account_id = str(choninstagram["data"][i].get("id", "N/A"))
+            status = choninstagram["data"][i].get("status", "N/A")
+            updated_at_raw = choninstagram["data"][i].get("updated_at", "N/A")
+            updated_at_display = "N/A"
+            if updated_at_raw != "N/A":
+                try:
+                    updated_at = datetime.strptime(updated_at_raw, "%Y-%m-%dT%H:%M:%S.%fZ")
+                    updated_at_formatted = updated_at.strftime("%d/%m/%Y %H:%M:%S")
+                    current_time = datetime.now()
+                    delta_days = (current_time - updated_at).days
+                    updated_at_display = f"{updated_at_formatted} (số ngày: {delta_days})"
+                except:
+                    updated_at_display = updated_at_raw
+            status_display = f"Hoạt Động {random.choice(account_icons)}" if str(status) == "1" else str(status)
+            table.add_row(str(i + 1), username, account_id, updated_at_display, status_display)
+        
+        console.print(table)
+
         while True:
             try:
                 print("\033[1;36mĐang chờ chọn tài khoản mới...")
@@ -487,7 +423,6 @@ while True:
     print(f'\033[1;35m🐥BUASH ANG Đang Tìm Nhiệm Vụ Cho Bạn💸', end="\r")
     icon_index = (icon_index + 1) % len(dynamic_icons)
     time.sleep(0.5)
-    
     max_retries = 3
     retry_count = 0
     nhanjob = None
@@ -496,14 +431,12 @@ while True:
             nhanjob = nhannv(account_id)
             if nhanjob and nhanjob.get("status") == 200 and nhanjob["data"].get("link") and nhanjob["data"].get("object_id"):
                 break
-            else:
-                retry_count += 1
-                time.sleep(2)
+            retry_count += 1
+            time.sleep(2)
         except Exception:
             retry_count += 1
             time.sleep(1)
     if not nhanjob or retry_count >= max_retries:
-        print(f"\033[1;31mKhông nhận được job, thử lại... ❌")
         continue
     
     ads_id = nhanjob["data"]["id"]
@@ -513,17 +446,13 @@ while True:
     
     if job_type not in ["follow", "like"]:
         baoloi(ads_id, object_id, account_id, job_type)
-        print(f"\033[1;31mLoại job không hỗ trợ: {job_type} ❌")
         continue
     
-    # Thực hiện hành động Follow hoặc Like
     action_success, new_cookie = perform_instagram_action(object_id, job_type, instagram_cookie, username)
     if new_cookie != instagram_cookie:
-        instagram_cookie = new_cookie  # Cập nhật cookie mới
+        instagram_cookie = new_cookie
     if not action_success:
         baoloi(ads_id, object_id, account_id, job_type)
-        print("                                              ", end="\r")
-        print(f"\033[1;31mThực hiện {job_type} thất bại ({doiacc}|{checkdoiacc}) ❌")
         time.sleep(1)
         checkdoiacc += 1
         continue
@@ -575,7 +504,5 @@ while True:
         checkdoiacc = 0
     else:
         baoloi(ads_id, object_id, account_id, job_type)
-        print("                                              ", end="\r")
-        print(f"\033[1;31mNhận tiền thất bại ({doiacc}|{checkdoiacc}) ❌")
         time.sleep(1)
         checkdoiacc += 1
