@@ -1,153 +1,3 @@
-import subprocess
-import sys
-
-required_packages = {
-    "requests": "requests",
-    "pystyle": "pystyle",
-    "colorama": "colorama",
-    "rich": "rich",
-    "bs4": "beautifulsoup4",
-    "cloudscraper": "cloudscraper",
-    "pytz": "pytz",
-    "fake_useragent": "fake-useragent"
-}
-
-missing = False
-for module_name, pip_name in required_packages.items():
-    try:
-        __import__(module_name)
-    except ImportError:
-        print(f"Đang cài đặt thư viện thiếu: {pip_name} ...")
-        try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
-            missing = True
-        except Exception as e:
-            print(f"Cài thư viện {pip_name} thất bại: {e}")
-            missing = True
-
-if missing:
-    print("\nĐã cài đặt thư viện cần thiết.")
-    print("Vui lòng **chạy lại tool**.")
-    sys.exit()
-
-import os
-import sys
-import json
-import socket
-import time
-import requests
-import pytz
-from datetime import datetime
-from colorama import Fore, init
-from rich.console import Console
-
-# Khởi tạo console và clear màn hình
-init(autoreset=True)
-os.system('cls' if os.name == 'nt' else 'clear')
-console = Console()
-
-# Đường dẫn tới file chứa key (nên là JSON chuẩn)
-KEYS_JSON_URL = "https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/key.json"
-
-# Kiểm tra kết nối mạng
-def kiem_tra_mang():
-    try:
-        socket.create_connection(("8.8.8.8", 53), timeout=10)
-    except OSError:
-        console.print("[bold red]Mạng không ổn định hoặc bị mất kết nối.[/bold red]")
-        sys.exit(1)
-kiem_tra_mang()
-
-# In banner ngày giờ
-def banner():
-    current_time = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).strftime('%d/%m/%Y %H:%M:%S')
-    print(f"""{Fore.YELLOW}╔══════════════════════════════════════════════════════╗
-{Fore.YELLOW}║              Ngày: {current_time}               {Fore.YELLOW}║
-{Fore.YELLOW}╚══════════════════════════════════════════════════════╝""")
-banner()
-
-# Lấy thời gian hiện tại
-def get_current_time():
-    return datetime.now(pytz.timezone("Asia/Ho_Chi_Minh"))
-
-# Lấy key từ GitHub (file cần là JSON hoặc nội dung JSON đúng định dạng)
-def get_keys_from_github():
-    try:
-        response = requests.get(KEYS_JSON_URL, timeout=10)
-        if response.status_code == 200:
-            # Tự động xử lý nếu file là .py chứa JSON
-            try:
-                text = response.text
-                # Nếu bắt đầu bằng { hoặc [, thì parse luôn
-                if text.strip().startswith("{") or text.strip().startswith("["):
-                    return json.loads(text)
-                else:
-                    # Nếu là file .py, trích xuất chuỗi JSON bên trong
-                    cleaned = text[text.find("{"):text.rfind("}")+1]
-                    return json.loads(cleaned)
-            except Exception as e:
-                console.print(f"[bold red]Lỗi parse key: {e}[/bold red]")
-                return {"key": []}
-        else:
-            console.print(f"[bold red]Lỗi khi lấy key từ GitHub: {response.status_code}[/bold red]")
-            return {"key": []}
-    except Exception as e:
-        console.print(f"[bold red]Lỗi khi kết nối GitHub: {e}[/bold red]")
-        return {"key": []}
-
-# Kiểm tra key nhập vào
-def check_key_github(input_key):
-    keys_data = get_keys_from_github()
-    now = get_current_time()
-    for key_data in keys_data.get("key", []):
-        if not isinstance(key_data, dict):
-            continue
-        if key_data.get("key") == input_key and key_data.get("status") == "active":
-            expires_at = key_data.get("expires_at")
-            if expires_at == "permanent":
-                return True
-            try:
-                exp_time = datetime.fromisoformat(expires_at).replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Asia/Ho_Chi_Minh"))
-                if now <= exp_time:
-                    return True
-            except Exception as e:
-                console.print(f"[bold red]Lỗi định dạng thời gian key: {e}[/bold red]")
-                continue
-    return False
-
-# Nhập key an toàn
-def safe_input(prompt):
-    while True:
-        try:
-            return console.input(prompt)
-        except EOFError:
-            console.print("[bold red]Ctrl+D bị chặn! Vui lòng nhập lại.[/bold red]")
-        except KeyboardInterrupt:
-            console.print("[bold red]Ctrl+C bị chặn! Vui lòng sử dụng lệnh khác.[/bold red]")
-
-# === Chạy tool chính ===
-try:
-    console.print("[bold yellow]Vui lòng nhập key đã mua hoặc liên hệ Zalo [liên hệ Buash Ang đi] để mua key.[/bold yellow]")
-
-    while True:
-        nhap_key = safe_input("[bold blue][[bold red]NHẬP KEY[/bold red]][/bold blue][bold yellow]==>> [/bold yellow]").strip()
-        if check_key_github(nhap_key):
-            console.print("\n[bold green]Key hợp lệ! Đang vào Tool...[/bold green]", end="\r")
-            time.sleep(3)
-            print("\033[F\033[K" * 3, end="")
-            break
-        else:
-            console.print("\n[bold red]Key không hợp lệ hoặc đã hết hạn. Vui lòng thử lại![/bold red]")
-            time.sleep(2)
-
-    os.system("cls" if os.name == "nt" else "clear")
-    console.print("[bold green]Đã vào Tool thành công![/bold green]")
-    # === Logic tool chính nằm ở đây ===
-
-except Exception as e:
-    console.print(f"[bold red]Lỗi hệ thống: {e}[/bold red]")
-    sys.exit(1)
-
 import requests
 import json
 import time
@@ -238,11 +88,11 @@ def load_settings():
         table.add_column("Giá trị", justify="center", style="bold")
 
         table.add_row("1", "Gitcode", f"[bold cyan]{settings['code'] or 'Chưa nhập'}[/bold cyan]")
-        table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{settings['remaining_turns']}[/bold cyan]")
+        table.add_row("2", "Còn bao nhiêu lượt thì nhập", f"[bold cyan]{settings['remaining_turns']}[/bold cyan]")
 
         console.print(table)
 
-        edit_choice = Prompt.ask("Bạn muốn sửa mục nào? Nhập số (1, 2) hoặc nhấn Enter để tiếp tục", default="")
+        edit_choice = Prompt.ask("Bạn muốn sửa mục nào?  hoặc nhấn Enter để tiếp tục", default="")
         if not edit_choice:
             if not settings["code"]:
                 console.print("[bold red]Gitcode không được để trống! Vui lòng nhập gitcode.[/bold red]")
@@ -252,11 +102,11 @@ def load_settings():
         try:
             edit_index = int(edit_choice)
             if edit_index == 1:
-                settings["code"] = Prompt.ask("Nhập gitcode (code|...)", default=settings["code"])
+                settings["code"] = Prompt.ask("Nhập gitcode: ", default=settings["code"])
             elif edit_index == 2:
                 while True:
                     try:
-                        settings["remaining_turns"] = int(Prompt.ask("Còn bao nhiêu giây thì nhập", default=str(settings["remaining_turns"])))
+                        settings["remaining_turns"] = int(Prompt.ask("Còn bao nhiêu lượt còn lại thì nhập", default=str(settings["remaining_turns"])))
                         break
                     except ValueError:
                         console.print("[bold red]Vui lòng nhập số hợp lệ cho số giây![/bold red]")
@@ -376,92 +226,123 @@ def fetch_and_display(code, payload, remaining_turns):
             'secret_key': payload.get('user_secret_key')
         })
 
-    try:
-        response = requests.post(
-            'https://web3task.3games.io/v1/task/redcode/detail',
-            headers=headers,
-            json=json_data,
-            timeout=10
-        )
+    max_retries = 3
+    retry_count = 0
+    while retry_count < max_retries:
+        try:
+            response = requests.post(
+                'https://web3task.3games.io/v1/task/redcode/detail',
+                headers=headers,
+                json=json_data,
+                timeout=10
+            )
 
-        if response.status_code == 200:
-            result = response.json()
-            data = result.get("data") or {}
-
-            code = data.get("code", "N/A")
-            value = data.get("value", 0)
-            currency = data.get("currency", "build")
-            user_cnt = data.get("user_cnt", 0)
-            progress = data.get("progress", 0)
-
-            # Tính toán tiến độ còn lại (trừ ngược lại: user_cnt - progress)
-            progress_minus_user = user_cnt - progress
-
-            # Kiểm tra điều kiện kích hoạt API nhận code
-            reward_received = False
-            reward_value = None
-            reward_currency = None
-            error_message = None
-            exchange_called = False
-            if progress_minus_user <= remaining_turns and code != "N/A":
-                exchange_called = True
-                retry_count = 0
-                max_retries = 3
-                while retry_count < max_retries:
-                    reward_received, reward_value, reward_currency, error_message = exchange_code(code, payload)
-                    if reward_received or not error_message or "Lỗi kết nối" in error_message or "Status code" in error_message:
-                        break
-                    retry_count += 1
-                    console.print(f"[red]Lỗi: {error_message} (Thử lại {retry_count}/{max_retries})[/]")
-                    time.sleep(1)
-
-            # Hiển thị bảng Rich
-            table = Table.grid(padding=(0, 1))
-            table.add_column(justify="right", style="cyan", no_wrap=True)
-            table.add_column(justify="left", style="white")
-
-            table.add_row("Code", f"[bold yellow]{code}[/]")
-            table.add_row("Giá trị", f"[bold green]{value:,.0f} {currency}[/]")
-            table.add_row("Tiến độ", f"[bold]{user_cnt}[/] / [bold]{progress}[/] ([bold]{abs(progress_minus_user)}[/])")
-            table.add_row("Bạn nhận được", f"[bold green]{reward_value:,.0f} {reward_currency}[/]" if reward_received else f"[bold red]{error_message or 'đuma anh Buash Ang chưa nhận code đâu đợi tí đê!!!'}[/]")
-
-            panel = Panel(table, title="", box=box.ROUNDED, border_style="cyan")
-            console.print(panel)
-
-            # Nếu API nhận code được gọi (thành công hoặc thất bại) hoặc progress_minus_user == 0, xử lý
-            if (exchange_called or progress_minus_user == 0) and code != "N/A":
-                if reward_received:
-                    console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
-                    settings_table = Table(title="", show_header=True, header_style="bold cyan")
-                    settings_table.add_column("STT", justify="center", style="bold")
-                    settings_table.add_column("Mục", justify="left", style="bold")
-                    settings_table.add_column("Giá trị", justify="center", style="bold")
-                    settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-                    settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
-                    settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
-                    console.print(settings_panel)
-                    return False, load_settings()
-                else:
-                    console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
-                    settings_table = Table(title="", show_header=True, header_style="bold cyan")
-                    settings_table.add_column("STT", justify="center", style="bold")
-                    settings_table.add_column("Mục", justify="left", style="bold")
-                    settings_table.add_column("Giá trị", justify="center", style="bold")
-                    settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-                    settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
-                    settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
-                    console.print(settings_panel)
-                    return False, load_settings()
-            return True, None  # Tiếp tục vòng lặp nếu code là "N/A"
-
-        else:
-            console.print(f"[red]Lỗi API detail. Status code: {response.status_code}[/]")
-            try:
+            if response.status_code == 200:
                 result = response.json()
-                error_message = result.get("message", "Không có thông báo lỗi cụ thể")
-                console.print(f"[red]Thông báo lỗi từ API: {error_message}[/]")
-            except ValueError:
-                console.print("[red]Không thể phân tích phản hồi API.[/]")
+                data = result.get("data") or {}
+
+                code = data.get("code", "N/A")
+                value = data.get("value", 0)
+                currency = data.get("currency", "build")
+                user_cnt = data.get("user_cnt", 0)
+                progress = data.get("progress", 0)
+
+                # Tính toán tiến độ còn lại (trừ ngược lại: user_cnt - progress)
+                progress_minus_user = user_cnt - progress
+
+                # Kiểm tra điều kiện kích hoạt API nhận code
+                reward_received = False
+                reward_value = None
+                reward_currency = None
+                error_message = None
+                exchange_called = False
+                if progress_minus_user <= remaining_turns and code != "N/A":
+                    exchange_called = True
+                    retry_count_exchange = 0
+                    max_retries_exchange = 3
+                    while retry_count_exchange < max_retries_exchange:
+                        reward_received, reward_value, reward_currency, error_message = exchange_code(code, payload)
+                        if reward_received or not error_message or "Lỗi kết nối" in error_message or "Status code" in error_message:
+                            break
+                        retry_count_exchange += 1
+                        console.print(f"[red]Lỗi: {error_message} (Thử lại {retry_count_exchange}/{max_retries_exchange})[/]")
+                        time.sleep(1)
+
+                # Hiển thị bảng Rich
+                table = Table.grid(padding=(0, 1))
+                table.add_column(justify="right", style="cyan", no_wrap=True)
+                table.add_column(justify="left", style="white")
+
+                table.add_row("Code", f"[bold yellow]{code}[/]")
+                table.add_row("Giá trị", f"[bold green]{value:,.0f} {currency}[/]")
+                table.add_row("Tiến độ", f"[bold]{user_cnt}[/] / [bold]{progress}[/] ([bold]{abs(progress_minus_user)}[/])")
+                table.add_row("Bạn nhận được", f"[bold green]{reward_value:,.0f} {reward_currency}[/]" if reward_received else f"[bold red]{error_message or 'đuma anh Buash Ang chưa nhận code đâu đợi tí đê!!!'}[/]")
+
+                panel = Panel(table, title="", box=box.ROUNDED, border_style="cyan")
+                console.print(panel)
+
+                # Nếu API nhận code được gọi (thành công hoặc thất bại) hoặc progress_minus_user == 0, xử lý
+                if (exchange_called or progress_minus_user == 0) and code != "N/A":
+                    if reward_received:
+                        console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
+                        settings_table = Table(title="", show_header=True, header_style="bold cyan")
+                        settings_table.add_column("STT", justify="center", style="bold")
+                        settings_table.add_column("Mục", justify="left", style="bold")
+                        settings_table.add_column("Giá trị", justify="center", style="bold")
+                        settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
+                        settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+                        settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
+                        console.print(settings_panel)
+                        return False, load_settings()
+                    else:
+                        console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
+                        settings_table = Table(title="", show_header=True, header_style="bold cyan")
+                        settings_table.add_column("STT", justify="center", style="bold")
+                        settings_table.add_column("Mục", justify="left", style="bold")
+                        settings_table.add_column("Giá trị", justify="center", style="bold")
+                        settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
+                        settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+                        settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
+                        console.print(settings_panel)
+                        return False, load_settings()
+                return True, None  # Tiếp tục vòng lặp nếu code là "N/A"
+            else:
+                console.print(f"[red]Lỗi API detail. Status code: {response.status_code}[/]")
+                try:
+                    result = response.json()
+                    error_message = result.get("message", "Không có thông báo lỗi cụ thể")
+                    console.print(f"[red]Thông báo lỗi từ API: {error_message}[/]")
+                except ValueError:
+                    console.print("[red]Không thể phân tích phản hồi API.[/]")
+                console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
+                settings_table = Table(title="", show_header=True, header_style="bold cyan")
+                settings_table.add_column("STT", justify="center", style="bold")
+                settings_table.add_column("Mục", justify="left", style="bold")
+                settings_table.add_column("Giá trị", justify="center", style="bold")
+                settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
+                settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+                settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
+                console.print(settings_panel)
+                return False, load_settings()
+
+        except requests.exceptions.ReadTimeout:
+            retry_count += 1
+            console.print(f"[red]Lỗi kết nối: Read timed out (Thử lại {retry_count}/{max_retries})[/]")
+            if retry_count == max_retries:
+                console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
+                settings_table = Table(title="", show_header=True, header_style="bold cyan")
+                settings_table.add_column("STT", justify="center", style="bold")
+                settings_table.add_column("Mục", justify="left", style="bold")
+                settings_table.add_column("Giá trị", justify="center", style="bold")
+                settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
+                settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+                settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
+                console.print(settings_panel)
+                return False, load_settings()
+            time.sleep(1)  # Đợi 1 giây trước khi thử lại
+            continue
+        except Exception as e:
+            console.print(f"[red]Lỗi kết nối hoặc xử lý: {e}[/]")
             console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
             settings_table = Table(title="", show_header=True, header_style="bold cyan")
             settings_table.add_column("STT", justify="center", style="bold")
@@ -472,19 +353,6 @@ def fetch_and_display(code, payload, remaining_turns):
             settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
             console.print(settings_panel)
             return False, load_settings()
-
-    except Exception as e:
-        console.print(f"[red]Lỗi kết nối hoặc xử lý: {e}[/]")
-        console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
-        settings_table = Table(title="", show_header=True, header_style="bold cyan")
-        settings_table.add_column("STT", justify="center", style="bold")
-        settings_table.add_column("Mục", justify="left", style="bold")
-        settings_table.add_column("Giá trị", justify="center", style="bold")
-        settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-        settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
-        settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
-        console.print(settings_panel)
-        return False, load_settings()
 
 # ============================ CHƯƠNG TRÌNH CHÍNH ============================
 def main():
