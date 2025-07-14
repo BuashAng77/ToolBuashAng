@@ -2,7 +2,7 @@
   {
     "key": [
       {
-        "key": "BUASHANG--DCM83731239",
+        "key": "BUASHANGDZA1-AZL387264321",
         "created_at": "2025-07-14T10:00:00",
         "expires_at": "2025-07-17T00:00:00",
         "status": "active"
