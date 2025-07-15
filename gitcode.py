@@ -30,17 +30,15 @@ if missing:
     print("Vui lòng **chạy lại tool**.")
     sys.exit()
     
-import subprocess
-import sys
 import os
+import sys
 import json
 import socket
 import time
 import base64
 import requests
 import pytz
-import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 from colorama import Fore, init
 from rich.console import Console
 
@@ -53,33 +51,28 @@ console = Console()
 KEYS_JSON_URL = "https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/key.json"
 LOCAL_KEY_FILE = "key_gitcode_xworld.json"
 
-# Biến toàn cục
-current_key = None
-key_valid = True
-lock = threading.Lock()
+# === UTILS ===
 
-# Tùy chỉnh base64-65
 def encode_b64_65(data):
     base = base64.b64encode(data.encode()).decode()
-    return base.replace("=", "*")  # thay = thành *
+    return base.replace("=", "*")
 
 def decode_b64_65(data):
     base = data.replace("*", "=")
     return base64.b64decode(base.encode()).decode()
 
-# Kiểm tra mạng
+def get_current_time():
+    return datetime.now(pytz.timezone("Asia/Ho_Chi_Minh"))
+
 def kiem_tra_mang():
     try:
         socket.create_connection(("8.8.8.8", 53), timeout=10)
     except OSError:
         sys.exit(1)
-kiem_tra_mang()
 
-# In banner ngày giờ
 def banner():
-    current_time = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).strftime('%d/%m/%Y %H:%M:%S')
-    print(f"""
-{Fore.YELLOW}╔══════════════════════════════════════════════════════╗
+    current_time = get_current_time().strftime('%d/%m/%Y %H:%M:%S')
+    print(f"""{Fore.YELLOW}╔══════════════════════════════════════════════════════╗
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║  {Fore.WHITE}██████╗░██╗░░░██║░█████╗░░██████╗██╗░░██║           {Fore.YELLOW}║
 {Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██╗██╔════╝██║░░██║           {Fore.YELLOW}║
@@ -98,15 +91,18 @@ def banner():
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║                                                      {Fore.YELLOW}║
 {Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛            {Fore.YELLOW}║
-{Fore.YELLOW}╚══════════════════════════════════════════════════════╝
-""")
-banner()
+{Fore.YELLOW}╚══════════════════════════════════════════════════════╝""")
 
-# Thời gian hiện tại
-def get_current_time():
-    return datetime.now(pytz.timezone("Asia/Ho_Chi_Minh"))
+def calculate_remaining_time(expires_at):
+    now = get_current_time()
+    time_diff = expires_at - now
+    if time_diff.total_seconds() <= 0:
+        return "Key đã hết hạn."
+    days = time_diff.days
+    hours, rem = divmod(time_diff.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    return f"Key còn lại: {days} ngày {hours} giờ {minutes} phút {seconds} giây."
 
-# Lấy key từ GitHub
 def get_keys_from_github():
     try:
         response = requests.get(KEYS_JSON_URL, timeout=10)
@@ -121,7 +117,6 @@ def get_keys_from_github():
     except:
         return {"key": []}
 
-# Kiểm tra key và lấy thời gian hết hạn
 def check_key_github(input_key):
     keys_data = get_keys_from_github()
     now = get_current_time()
@@ -140,24 +135,11 @@ def check_key_github(input_key):
                 continue
     return False, None
 
-# Tính thời gian còn lại
-def calculate_remaining_time(expires_at):
-    now = get_current_time()
-    time_diff = expires_at - now
-    if time_diff.total_seconds() <= 0:
-        return "Key đã hết hạn."
-    days = time_diff.days
-    hours, rem = divmod(time_diff.seconds, 3600)
-    minutes, seconds = divmod(rem, 60)
-    return f"Key còn lại: {days} ngày {hours} giờ {minutes} phút {seconds} giây."
-
-# Lưu key mã hóa
 def save_key_to_file(key):
     encoded = encode_b64_65(key)
     with open(LOCAL_KEY_FILE, "w") as f:
         json.dump({"key": encoded}, f)
 
-# Đọc key từ file
 def load_key_from_file():
     if not os.path.exists(LOCAL_KEY_FILE):
         return None
@@ -168,73 +150,55 @@ def load_key_from_file():
     except:
         return None
 
-# Kiểm tra key định kỳ
-def check_key_expiry_periodically():
-    global key_valid
-    while key_valid:
-        with lock:
-            if current_key:
-                is_valid, expires_at = check_key_github(current_key)
-                if not is_valid or (expires_at and expires_at < get_current_time()):
-                    key_valid = False
-                    os._exit(0)
-        time.sleep(60)
-
-# Nhập an toàn
 def safe_input(prompt):
     while True:
         try:
             return console.input(prompt)
-        except EOFError:
-            console.print("[bold red]Ctrl+D bị chặn! Vui lòng nhập lại.[/bold red]")
-        except KeyboardInterrupt:
-            console.print("[bold red]Ctrl+C bị chặn![/bold red]")
+        except (EOFError, KeyboardInterrupt):
+            console.print("[bold red]Hành động bị chặn![/bold red]")
+            continue
 
-# === CHẠY TOOL ===
+# === MAIN TOOL ===
 def run_tool():
-    global current_key, key_valid
+    kiem_tra_mang()
+    banner()
 
-    # Thử đọc key đã lưu
     cached_key = load_key_from_file()
     if cached_key:
         is_valid, expires_at = check_key_github(cached_key)
         if is_valid:
-            current_key = cached_key
-            key_valid = True
             remaining_time = calculate_remaining_time(expires_at)
             console.print(f"[bold green]{remaining_time}[/bold green]")
-            time.sleep(6)
-            sys.exit(0)
+            time.sleep(3)
+            return cached_key
         else:
             console.print("[bold red]Key đã hết hạn. Vui lòng mua lại key![/bold red]")
             try:
                 os.remove(LOCAL_KEY_FILE)
             except:
                 pass
-            key_valid = False
+            sys.exit(1)  # ⛔ Thoát nếu key hết hạn
 
-    # Nếu chưa có key hoặc key đã hết hạn
-    console.print("[bold yellow]Vui lòng nhập key hợp lệ từ GitHub.[/bold yellow]")
+    # Yêu cầu nhập key nếu chưa có
+    console.print("[bold yellow]Vui lòng liên hệ key vàng trong nhóm | https://zalo.me/g/nwkzyq804 | để mua key  .[/bold yellow]")
 
-    while True:
-        nhap_key = safe_input("[bold blue][[bold red]NHẬP KEY[/bold red]][/bold blue][bold yellow]==>> [/bold yellow]").strip()
-        is_valid, expires_at = check_key_github(nhap_key)
-        if is_valid:
-            current_key = nhap_key
-            save_key_to_file(nhap_key)
-            remaining_time = calculate_remaining_time(expires_at)
-            console.print(f"\n[bold green]{remaining_time}[/bold green]")
-            time.sleep(6)
-            sys.exit(0)
-        else:
-            console.print("\n[bold red]Key không hợp lệ hoặc đã hết hạn. Vui lòng thử lại![/bold red]")
-            time.sleep(2)
+    nhap_key = safe_input("[bold blue][[bold red]NHẬP KEY[/bold red]][/bold blue][bold yellow]==>> [/bold yellow]").strip()
+    is_valid, expires_at = check_key_github(nhap_key)
+    if is_valid:
+        save_key_to_file(nhap_key)
+        remaining_time = calculate_remaining_time(expires_at)
+        console.print(f"\n[bold green]{remaining_time}[/bold green]")
+        time.sleep(3)
+        return nhap_key
+    else:
+        console.print("\n[bold red]Key không hợp lệ hoặc đã hết hạn. Vui lòng mua lại key![/bold red]")
+        time.sleep(2)
+        sys.exit(1)  # ⛔ Thoát nếu nhập sai key
 
-# Gọi hàm chạy chính
-try:
+# === GỌI TỪ FILE NGOÀI ===
+if __name__ == "__main__":
     run_tool()
-except Exception as e:
-    sys.exit(1)
+    
 import requests
 import json
 import time
@@ -247,6 +211,8 @@ from rich.panel import Panel
 from rich.text import Text
 from rich import box
 from rich.prompt import Prompt
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # Khởi tạo console và user-agent
 console = Console()
@@ -356,6 +322,10 @@ def load_settings():
 
 # ============================ API NHẬN CODE ===============================
 def exchange_code(code, payload):
+    session = requests.Session()
+    retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+
     random_user_agent = ua.random
     headers = {
         'authority': 'web3task.3games.io',
@@ -389,11 +359,11 @@ def exchange_code(code, payload):
     }
 
     try:
-        response = requests.post(
+        response = session.post(
             'https://web3task.3games.io/v1/task/redcode/exchange',
             headers=headers,
             json=json_data,
-            timeout=10
+            timeout=15
         )
 
         if response.status_code == 200:
@@ -401,7 +371,6 @@ def exchange_code(code, payload):
             data = result.get("data") or {}
             value = data.get("value", 0)
             currency = data.get("currency", "build")
-            # Kiểm tra lỗi không nhận được code
             if value == 0 and result.get("message"):
                 return False, None, None, result.get("message", "Không nhận được code")
             return True, value, currency, None
@@ -426,10 +395,14 @@ def fetch_and_display(code, payload, remaining_turns):
         settings_table.add_column("Mục", justify="left", style="bold")
         settings_table.add_column("Giá trị", justify="center", style="bold")
         settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-        settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+        settings_table.add_row("2", "Còn bao nhiêu lượt thì nhập", f"[bold cyan]{remaining_turns}[/bold cyan]")
         settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
         console.print(settings_panel)
         return False, load_settings()
+
+    session = requests.Session()
+    retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
 
     random_user_agent = ua.random
     headers = {
@@ -467,11 +440,11 @@ def fetch_and_display(code, payload, remaining_turns):
     retry_count = 0
     while retry_count < max_retries:
         try:
-            response = requests.post(
+            response = session.post(
                 'https://web3task.3games.io/v1/task/redcode/detail',
                 headers=headers,
                 json=json_data,
-                timeout=10
+                timeout=15
             )
 
             if response.status_code == 200:
@@ -484,16 +457,14 @@ def fetch_and_display(code, payload, remaining_turns):
                 user_cnt = data.get("user_cnt", 0)
                 progress = data.get("progress", 0)
 
-                # Tính toán tiến độ còn lại (trừ ngược lại: user_cnt - progress)
                 progress_minus_user = user_cnt - progress
 
-                # Kiểm tra điều kiện kích hoạt API nhận code
                 reward_received = False
                 reward_value = None
                 reward_currency = None
                 error_message = None
                 exchange_called = False
-                if progress_minus_user <= remaining_turns and code != "N/A":
+                if progress_minus_user <= remaining_turns + 1 and code != "N/A":
                     exchange_called = True
                     retry_count_exchange = 0
                     max_retries_exchange = 3
@@ -503,9 +474,8 @@ def fetch_and_display(code, payload, remaining_turns):
                             break
                         retry_count_exchange += 1
                         console.print(f"[red]Lỗi: {error_message} (Thử lại {retry_count_exchange}/{max_retries_exchange})[/]")
-                        time.sleep(1)
+                        time.sleep(0.5)
 
-                # Hiển thị bảng Rich
                 table = Table.grid(padding=(0, 1))
                 table.add_column(justify="right", style="cyan", no_wrap=True)
                 table.add_column(justify="left", style="white")
@@ -518,7 +488,6 @@ def fetch_and_display(code, payload, remaining_turns):
                 panel = Panel(table, title="", box=box.ROUNDED, border_style="cyan")
                 console.print(panel)
 
-                # Nếu API nhận code được gọi (thành công hoặc thất bại) hoặc progress_minus_user == 0, xử lý
                 if (exchange_called or progress_minus_user == 0) and code != "N/A":
                     if reward_received:
                         console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
@@ -527,7 +496,7 @@ def fetch_and_display(code, payload, remaining_turns):
                         settings_table.add_column("Mục", justify="left", style="bold")
                         settings_table.add_column("Giá trị", justify="center", style="bold")
                         settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-                        settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+                        settings_table.add_row("2", "Còn bao nhiêu lượt thì nhập", f"[bold cyan]{remaining_turns}[/bold cyan]")
                         settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
                         console.print(settings_panel)
                         return False, load_settings()
@@ -538,11 +507,11 @@ def fetch_and_display(code, payload, remaining_turns):
                         settings_table.add_column("Mục", justify="left", style="bold")
                         settings_table.add_column("Giá trị", justify="center", style="bold")
                         settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-                        settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+                        settings_table.add_row("2", "Còn bao nhiêu lượt thì nhập", f"[bold cyan]{remaining_turns}[/bold cyan]")
                         settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
                         console.print(settings_panel)
                         return False, load_settings()
-                return True, None  # Tiếp tục vòng lặp nếu code là "N/A"
+                return True, None
             else:
                 console.print(f"[red]Lỗi API detail. Status code: {response.status_code}[/]")
                 try:
@@ -557,26 +526,26 @@ def fetch_and_display(code, payload, remaining_turns):
                 settings_table.add_column("Mục", justify="left", style="bold")
                 settings_table.add_column("Giá trị", justify="center", style="bold")
                 settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-                settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+                settings_table.add_row("2", "Còn bao nhiêu lượt thì nhập", f"[bold cyan]{remaining_turns}[/bold cyan]")
                 settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
                 console.print(settings_panel)
                 return False, load_settings()
 
         except requests.exceptions.ReadTimeout:
             retry_count += 1
-            console.print(f"[red]Lỗi kết nối: Read timed out (Thử lại {retry_count}/{max_retries})[/]")
-            if retry_count == max_retries:
+            console.print(f"[red]Lỗi kết nối: Read timed out (Thử lại {retry_count}/3)[/]")
+            if retry_count == 3:
                 console.print("[bold yellow]Yêu cầu nhập lại settings![/bold yellow]")
                 settings_table = Table(title="", show_header=True, header_style="bold cyan")
                 settings_table.add_column("STT", justify="center", style="bold")
                 settings_table.add_column("Mục", justify="left", style="bold")
                 settings_table.add_column("Giá trị", justify="center", style="bold")
                 settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-                settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+                settings_table.add_row("2", "Còn bao nhiêu lượt thì nhập", f"[bold cyan]{remaining_turns}[/bold cyan]")
                 settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
                 console.print(settings_panel)
                 return False, load_settings()
-            time.sleep(1)  # Đợi 1 giây trước khi thử lại
+            time.sleep(0.5)
             continue
         except Exception as e:
             console.print(f"[red]Lỗi kết nối hoặc xử lý: {e}[/]")
@@ -586,7 +555,7 @@ def fetch_and_display(code, payload, remaining_turns):
             settings_table.add_column("Mục", justify="left", style="bold")
             settings_table.add_column("Giá trị", justify="center", style="bold")
             settings_table.add_row("1", "Gitcode", f"[bold cyan]{code or 'Chưa nhập'}[/bold cyan]")
-            settings_table.add_row("2", "Còn bao nhiêu giây", f"[bold cyan]{remaining_turns}[/bold cyan]")
+            settings_table.add_row("2", "Còn bao nhiêu lượt thì nhập", f"[bold cyan]{remaining_turns}[/bold cyan]")
             settings_panel = Panel(settings_table, border_style="bright_cyan", title=Text("Cài đặt Settings", style="bold italic bright_cyan", justify="center"))
             console.print(settings_panel)
             return False, load_settings()
@@ -613,7 +582,7 @@ def main():
             console.print("[bold green]Đã tải cài đặt mới thành công![/bold green]")
         elif not continue_loop:
             break
-        time.sleep(0.9)  # Lặp lại sau mỗi 0.9 giây
+        time.sleep(0.2)  # Thay 0.9 bằng 0.2
 
 if __name__ == "__main__":
     main()
