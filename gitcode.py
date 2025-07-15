@@ -1,3 +1,240 @@
+import subprocess
+import sys
+
+required_packages = {
+    "requests": "requests",
+    "pystyle": "pystyle",
+    "colorama": "colorama",
+    "rich": "rich",
+    "bs4": "beautifulsoup4",
+    "cloudscraper": "cloudscraper",
+    "pytz": "pytz",
+    "fake_useragent": "fake-useragent"
+}
+
+missing = False
+for module_name, pip_name in required_packages.items():
+    try:
+        __import__(module_name)
+    except ImportError:
+        print(f"Đang cài đặt thư viện thiếu: {pip_name} ...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+            missing = True
+        except Exception as e:
+            print(f"Cài thư viện {pip_name} thất bại: {e}")
+            missing = True
+
+if missing:
+    print("\nĐã cài đặt thư viện cần thiết.")
+    print("Vui lòng **chạy lại tool**.")
+    sys.exit()
+    
+import subprocess
+import sys
+import os
+import json
+import socket
+import time
+import base64
+import requests
+import pytz
+import threading
+from datetime import datetime, timedelta
+from colorama import Fore, init
+from rich.console import Console
+
+# Khởi tạo console và clear màn hình
+init(autoreset=True)
+os.system('cls' if os.name == 'nt' else 'clear')
+console = Console()
+
+# Đường dẫn tới file chứa key trên GitHub
+KEYS_JSON_URL = "https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/key.json"
+LOCAL_KEY_FILE = "key_gitcode_xworld.json"
+
+# Biến toàn cục
+current_key = None
+key_valid = True
+lock = threading.Lock()
+
+# Tùy chỉnh base64-65
+def encode_b64_65(data):
+    base = base64.b64encode(data.encode()).decode()
+    return base.replace("=", "*")  # thay = thành *
+
+def decode_b64_65(data):
+    base = data.replace("*", "=")
+    return base64.b64decode(base.encode()).decode()
+
+# Kiểm tra mạng
+def kiem_tra_mang():
+    try:
+        socket.create_connection(("8.8.8.8", 53), timeout=10)
+    except OSError:
+        sys.exit(1)
+kiem_tra_mang()
+
+# In banner ngày giờ
+def banner():
+    current_time = datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).strftime('%d/%m/%Y %H:%M:%S')
+    print(f"""
+{Fore.YELLOW}╔══════════════════════════════════════════════════════╗
+{Fore.YELLOW}║                                                      {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}██████╗░██╗░░░██║░█████╗░░██████╗██╗░░██║           {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██╗██╔════╝██║░░██║           {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}██████╦╝██║░░░██║███████║╚█████╗░███████║           {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}██╔══██╗██║░░░██║██╔══██║░╚═══██╗██╔══██║           {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}██████╦╝╚██████╔╝██║░░██║██████╔╝██║░░██║           {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}╚═════╝░░╚═════╝░╚═╝░░╚═╝╚═════╝░╚═╝░░╚═╝           {Fore.YELLOW}║
+{Fore.YELLOW}║                                                      {Fore.YELLOW}║             
+{Fore.YELLOW}║  {Fore.WHITE}          ░█████╗░███╗░░██║░██████╗░                {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}          ██╔══██╗████╗░██║██╔════╝░                {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}          ███████║██╔██╗██║██║░░██╗░                {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}          ██╔══██║██║╚████║██║░░╚██╗                {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}          ██║░░██║██║░╚███║╚██████╔╝                {Fore.YELLOW}║
+{Fore.YELLOW}║  {Fore.WHITE}          ╚═╝░░╚═╝╚═╝░░╚══╝░╚═════╝░                {Fore.YELLOW}║
+{Fore.YELLOW}║                                                      {Fore.YELLOW}║
+{Fore.YELLOW}║                                                      {Fore.YELLOW}║
+{Fore.YELLOW}║                                                      {Fore.YELLOW}║
+{Fore.YELLOW}║              {Fore.YELLOW}Ngày: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} ⌛            {Fore.YELLOW}║
+{Fore.YELLOW}╚══════════════════════════════════════════════════════╝
+""")
+banner()
+
+# Thời gian hiện tại
+def get_current_time():
+    return datetime.now(pytz.timezone("Asia/Ho_Chi_Minh"))
+
+# Lấy key từ GitHub
+def get_keys_from_github():
+    try:
+        response = requests.get(KEYS_JSON_URL, timeout=10)
+        if response.status_code == 200:
+            text = response.text
+            if text.strip().startswith("{") or text.strip().startswith("["):
+                return json.loads(text)
+            else:
+                cleaned = text[text.find("{"):text.rfind("}")+1]
+                return json.loads(cleaned)
+        return {"key": []}
+    except:
+        return {"key": []}
+
+# Kiểm tra key và lấy thời gian hết hạn
+def check_key_github(input_key):
+    keys_data = get_keys_from_github()
+    now = get_current_time()
+    for key_data in keys_data.get("key", []):
+        if not isinstance(key_data, dict):
+            continue
+        if key_data.get("key") == input_key and key_data.get("status") == "active":
+            expires_at = key_data.get("expires_at")
+            try:
+                exp_time = datetime.fromisoformat(expires_at).replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Asia/Ho_Chi_Minh"))
+                if now <= exp_time:
+                    return True, exp_time
+                else:
+                    return False, None
+            except:
+                continue
+    return False, None
+
+# Tính thời gian còn lại
+def calculate_remaining_time(expires_at):
+    now = get_current_time()
+    time_diff = expires_at - now
+    if time_diff.total_seconds() <= 0:
+        return "Key đã hết hạn."
+    days = time_diff.days
+    hours, rem = divmod(time_diff.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    return f"Key còn lại: {days} ngày {hours} giờ {minutes} phút {seconds} giây."
+
+# Lưu key mã hóa
+def save_key_to_file(key):
+    encoded = encode_b64_65(key)
+    with open(LOCAL_KEY_FILE, "w") as f:
+        json.dump({"key": encoded}, f)
+
+# Đọc key từ file
+def load_key_from_file():
+    if not os.path.exists(LOCAL_KEY_FILE):
+        return None
+    try:
+        with open(LOCAL_KEY_FILE, "r") as f:
+            data = json.load(f)
+        return decode_b64_65(data.get("key", ""))
+    except:
+        return None
+
+# Kiểm tra key định kỳ
+def check_key_expiry_periodically():
+    global key_valid
+    while key_valid:
+        with lock:
+            if current_key:
+                is_valid, expires_at = check_key_github(current_key)
+                if not is_valid or (expires_at and expires_at < get_current_time()):
+                    key_valid = False
+                    os._exit(0)
+        time.sleep(60)
+
+# Nhập an toàn
+def safe_input(prompt):
+    while True:
+        try:
+            return console.input(prompt)
+        except EOFError:
+            console.print("[bold red]Ctrl+D bị chặn! Vui lòng nhập lại.[/bold red]")
+        except KeyboardInterrupt:
+            console.print("[bold red]Ctrl+C bị chặn![/bold red]")
+
+# === CHẠY TOOL ===
+def run_tool():
+    global current_key, key_valid
+
+    # Thử đọc key đã lưu
+    cached_key = load_key_from_file()
+    if cached_key:
+        is_valid, expires_at = check_key_github(cached_key)
+        if is_valid:
+            current_key = cached_key
+            key_valid = True
+            remaining_time = calculate_remaining_time(expires_at)
+            console.print(f"[bold green]{remaining_time}[/bold green]")
+            time.sleep(6)
+            sys.exit(0)
+        else:
+            console.print("[bold red]Key đã hết hạn. Vui lòng mua lại key![/bold red]")
+            try:
+                os.remove(LOCAL_KEY_FILE)
+            except:
+                pass
+            key_valid = False
+
+    # Nếu chưa có key hoặc key đã hết hạn
+    console.print("[bold yellow]Vui lòng nhập key hợp lệ từ GitHub.[/bold yellow]")
+
+    while True:
+        nhap_key = safe_input("[bold blue][[bold red]NHẬP KEY[/bold red]][/bold blue][bold yellow]==>> [/bold yellow]").strip()
+        is_valid, expires_at = check_key_github(nhap_key)
+        if is_valid:
+            current_key = nhap_key
+            save_key_to_file(nhap_key)
+            remaining_time = calculate_remaining_time(expires_at)
+            console.print(f"\n[bold green]{remaining_time}[/bold green]")
+            time.sleep(6)
+            sys.exit(0)
+        else:
+            console.print("\n[bold red]Key không hợp lệ hoặc đã hết hạn. Vui lòng thử lại![/bold red]")
+            time.sleep(2)
+
+# Gọi hàm chạy chính
+try:
+    run_tool()
+except Exception as e:
+    sys.exit(1)
 import requests
 import json
 import time
