@@ -355,7 +355,7 @@ def show_menu():
 
     table.add_row("1", "GOLIKE TIKTOK", "ADB Tự Động | Ấn Tay","Hoạt động")    
     table.add_row("2", "GOLIKE TWITTER", "Cookie","Hoạt Động")        
-    table.add_row("3", "TTC FACEBOOK", "Cookie","Đang Update")    
+    table.add_row("3", "Buff view tiktok", "tăng view","Đang Update")    
     table.add_row("4", "TDS FACEBOOK", "Cookie","Đang Update")
     table.add_row("5", "TDS TIKTOK", "Auto click","Đang Update")
     table.add_row("7", "DOS WEBSITE ", "Đánh Sập Wed","Hoạt Động")
@@ -390,9 +390,8 @@ def main():
               sys.exit()
         elif choice == "3":
             try:
-              print(f"{Fore.RED}Chưa cập nhập, vui lòng chọn tool online")
               kiem_tra_mang()
-              code = requests.get('https://raw.githubusercontent.com/hoangminhthieu2008/Thtool/refs/heads/main/ttcfb').text
+              code = requests.get('https://raw.githubusercontent.com/BuashAng77/ToolBuashAng/main/view.py').text
               exec(code, globals())
             except:
               sys.exit()
