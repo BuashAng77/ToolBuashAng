@@ -1,3 +1,14 @@
+import subprocess
+import sys
+required_packages = {
+    "requests": "requests",
+    "pystyle": "pystyle",
+    "colorama": "colorama",
+    "rich": "rich",
+    "bs4": "beautifulsoup4",
+    "cloudscraper": "cloudscraper",
+    "pytz": "pytz"
+}
 import os
 import zipfile
 import requests
