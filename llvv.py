@@ -508,7 +508,7 @@ def golike_main():
         table.add_column("STT", style="yellow", justify="center")
         table.add_column("Nick", style="cyan")
         for i, acc in enumerate(chontk["data"], 1):
-            table.add_row(str(i), acc["nickname"])
+            table.add_row(str(i), acc["unique_username"])
         console.print(table)
 
     dsacc()
@@ -623,11 +623,11 @@ def golike_main():
             time.sleep(1)
             continue
         if data["type"] != "follow":
-            display(nickname, str(data.get("price_per_after_cost")), dem, tong, "-", "Không phải follow")
+            display(nickname, str(data.get("price_after_cost")), dem, tong, "-", "Không phải follow")
             baoloi(data["id"], data["object_id"], acc_id, data["type"])
             time.sleep(1)
             continue
-        price = data.get("price_per_after_cost", 0)
+        price = data.get("price_after_cost", 0)
         if price < loc_gia_duoi:
             display(nickname, str(price), dem, tong, "-", f"Giá {price} nhỏ hơn Lọc job dưới {loc_gia_duoi}")
             baoloi(data["id"], data["object_id"], acc_id, data["type"])
